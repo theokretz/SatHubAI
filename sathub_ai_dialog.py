@@ -24,6 +24,10 @@
 
 import os
 
+from PyQt5.QtWidgets import QMessageBox
+
+from .sentinel_hub_request import true_color_without_clouds
+
 from qgis.PyQt import uic
 from qgis.PyQt import QtWidgets
 
@@ -42,3 +46,15 @@ class SatHubAIDialog(QtWidgets.QDialog, FORM_CLASS):
         # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
         # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
+        self.pbSubmit.clicked.connect(self.on_pb_submit_clicked)
+
+    def on_pb_submit_clicked(self):
+        start_date = self.calendarStart.selectedDate().toString("yyyy-MM-dd")
+        end_date = self.calendarEnd.selectedDate().toString("yyyy-MM-dd")
+        download_checked = self.cbDownload.isChecked()
+        selected_file_type = self.comboboxFileType.currentText()
+
+        if start_date > end_date:
+            QMessageBox.critical(self, 'Error', 'End date should be after start date.')
+
+        true_color_without_clouds(start_date, end_date, download_checked, selected_file_type)
