@@ -21,6 +21,7 @@
  *                                                                         *
  ***************************************************************************/
 """
+from PyQt5.QtCore import Qt
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
@@ -163,7 +164,7 @@ class SatHubAI:
         icon_path = ':/plugins/sathub_ai/icon.png'
         self.add_action(
             icon_path,
-            text=self.tr(u'Dwonload Satellite Data'),
+            text=self.tr(u'Download Satellite Data'),
             callback=self.run,
             parent=self.iface.mainWindow())
 
@@ -185,16 +186,12 @@ class SatHubAI:
 
         # Create the dialog with elements (after translation) and keep reference
         # Only create GUI ONCE in callback, so that it will only load when the plugin is started
-        if self.first_start == True:
+        if self.first_start:
             self.first_start = False
-            self.dlg = SatHubAIDialog()
+            # give canvas to child
+            self.dlg = SatHubAIDialog(self.iface.mapCanvas())
+            # dock widget to the right side
+            self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dlg)
 
         # show the dialog
         self.dlg.show()
-        # Run the dialog event loop
-        result = self.dlg.exec_()
-        # See if OK was pressed
-        if result:
-            # Do something useful here - delete the line containing pass and
-            # substitute with your code.
-            pass
