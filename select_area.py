@@ -1,7 +1,7 @@
 from qgis.gui import QgsMapToolEmitPoint, QgsRubberBand
 from qgis.core import QgsPointXY, QgsWkbTypes
 from PyQt5.QtCore import Qt, pyqtSignal
-
+from .utils import display_warning_message
 
 class SelectArea(QgsMapToolEmitPoint):
     """lets users draw a rectangle on the QGIS map by clicking and dragging"""
@@ -47,17 +47,24 @@ class SelectArea(QgsMapToolEmitPoint):
     def canvasReleaseEvent(self, event):
         """mouse release event - triggers when mouse button is released"""
         if self.rubber_band and self.origin:
-            # collect the coordinates from rubberband
-            coords = [
-                # 0 - The geometry index
-                self.rubber_band.getPoint(0, 0),  # top-left
-                self.rubber_band.getPoint(0, 1),  # top-right
-                self.rubber_band.getPoint(0, 2),  # bottom-right
-                self.rubber_band.getPoint(0, 3)   # bottom-left
-            ]
+            try:
+                # collect the coordinates from rubberband
+                coords = [
+                    # 0 - The geometry index
+                    self.rubber_band.getPoint(0, 0),  # top-left
+                    self.rubber_band.getPoint(0, 1),  # top-right
+                    self.rubber_band.getPoint(0, 2),  # bottom-right
+                    self.rubber_band.getPoint(0, 3)   # bottom-left
+                ]
 
-            # emit coordinates
-            self.area_selected.emit(*coords)
+                # check for invalid coordinates
+                if any(coord is None for coord in coords):
+                    raise ValueError("Invalid coordinates: some points are None")
+
+                # emit coordinates
+                self.area_selected.emit(*coords)
+            except ValueError as e:
+                display_warning_message("Please click and drag to select an area on the map.", "No area selected.")
 
             # reset the rubberband and origin
             self.rubber_band.reset(QgsWkbTypes.PolygonGeometry)
