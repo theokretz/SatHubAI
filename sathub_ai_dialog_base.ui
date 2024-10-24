@@ -110,14 +110,24 @@
      <widget class="QToolButton" name="tbSelectArea">
       <property name="geometry">
        <rect>
-        <x>100</x>
-        <y>60</y>
-        <width>41</width>
-        <height>19</height>
+        <x>90</x>
+        <y>50</y>
+        <width>31</width>
+        <height>31</height>
        </rect>
       </property>
       <property name="text">
-       <string>...</string>
+       <string/>
+      </property>
+      <property name="icon">
+       <iconset resource="resources.qrc">
+        <normaloff>:/icons/icons/map-location-dot-solid.svg</normaloff>:/icons/icons/map-location-dot-solid.svg</iconset>
+      </property>
+      <property name="iconSize">
+       <size>
+        <width>25</width>
+        <height>25</height>
+       </size>
       </property>
      </widget>
      <widget class="QWidget" name="layoutWidget">
@@ -125,7 +135,7 @@
        <rect>
         <x>20</x>
         <y>110</y>
-        <width>341</width>
+        <width>241</width>
         <height>22</height>
        </rect>
       </property>
@@ -213,7 +223,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>...</string>
+       <string/>
       </property>
      </widget>
     </widget>

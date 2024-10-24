@@ -24,6 +24,9 @@
 
 import os
 
+# to load icons
+from . import resources_rc
+
 from PyQt5.QtWidgets import QMessageBox, QDockWidget, QWidget
 from qgis.PyQt import uic
 from qgis.core import (
