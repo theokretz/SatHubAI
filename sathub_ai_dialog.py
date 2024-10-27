@@ -34,8 +34,9 @@ from qgis.core import (
 )
 
 from .select_area import SelectArea
-from .sentinel_hub_request import true_color_without_clouds
-from .utils import display_error_message
+from .sentinel_hub_request import true_color_sentinel_hub
+from .utils import display_error_message, display_warning_message
+from .planetary_computer_request import true_color_planetary_computer
 
 # This loads your .ui file so that PyQt can populate your plugin with the elements from Qt Designer
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
@@ -53,6 +54,9 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
         # to store coordinates
         self.coords_wgs84 = (None, None)
 
+        # to store download directory
+        self.download_directory = None
+
         # get canvas from parent - needed to interact with the map
         self.canvas = canvas
 
@@ -60,9 +64,10 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
         self.main_widget = QWidget(self)
         self.setupUi(self.main_widget)
 
-        # buttons
+        # buttons/widgets
         self.pbSubmit.clicked.connect(self.on_pb_submit_clicked)
         self.tbSelectArea.clicked.connect(self.on_tb_select_area_clicked)
+        self.fwGetDirectory.fileChanged.connect(self.on_fw_get_directory_clicked)
 
         self.setWindowTitle("SatHubAI")
         # ensure window is docked and not floating
@@ -71,6 +76,8 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
         # dock widget
         self.setWidget(self.main_widget)
 
+    def on_fw_get_directory_clicked(self):
+        self.download_directory = self.fwGetDirectory.filePath()
 
     def on_pb_submit_clicked(self):
         """requests true color image"""
@@ -78,13 +85,29 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
         end_date = self.calendarEnd.selectedDate().toString("yyyy-MM-dd")
         download_checked = self.cbDownload.isChecked()
         selected_file_type = self.comboboxFileType.currentText()
+        sentinel_checked = self.cbSentinelHub.isChecked()
+        planetary_checked = self.cbPlanetaryComputer.isChecked()
 
-        if start_date > end_date:
-            display_error_message('End date should be after start date.')
+        if self.coords_wgs84 is (None, None):
+            display_warning_message('No area selected.', 'Select Area!')
             return
 
+        if start_date > end_date:
+            display_warning_message('End date should be after start date.')
+            return
+
+        if download_checked and self.download_directory is None:
+            display_warning_message('No download directory selected.', 'Select Directory!')
+            return
+
+
         try:
-            true_color_without_clouds(start_date, end_date, download_checked, selected_file_type, self.coords_wgs84)
+            if sentinel_checked:
+                true_color_sentinel_hub(self.coords_wgs84, start_date, end_date, download_checked, selected_file_type, self.download_directory)
+            if planetary_checked:
+                true_color_planetary_computer(self.coords_wgs84, start_date, end_date, selected_file_type, self.download_directory)
+            if not sentinel_checked and not planetary_checked:
+                display_warning_message("Please select a satellite provider.","No Satellite Provider selected!")
         except Exception as e:
             display_error_message(str(e))
 
@@ -100,12 +123,14 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
         # connect the area_selected signal to the function that handles the coordinates
         self.select_area_tool.area_selected.connect(self.handle_coordinates)
 
+
     @staticmethod
     def add_map_layer():
         """adds map layers"""
         # TODO: choose map layer -> raster or vector
         project = QgsProject.instance()
 
+        # TODO: maybe remove this, useful for development tho
         # remove existing layers
         if project.mapLayers() is not None:
             for layer in project.mapLayers():

@@ -1,5 +1,6 @@
 # sentinel_hub_request.py
-# Most of this code is from: https://sentinelhub-py.readthedocs.io/en/latest/examples/process_request.html
+# credits: https://sentinelhub-py.readthedocs.io/en/latest/examples/process_request.html
+
 import matplotlib.pyplot as plt
 import numpy as np
 from qgis._core import QgsProject, QgsMessageLog, Qgis
@@ -20,10 +21,7 @@ config = SHConfig()
 if not config.sh_client_id or not config.sh_client_secret:
     print("Warning! To use Process API, please provide the credentials (OAuth client ID and client secret).")
 
-vienna_coords_wgs84 = (16.280155, 48.151886, 16.466296, 48.260341)
 resolution = 60
-vienna_bbox = BBox(bbox=vienna_coords_wgs84, crs=CRS.WGS84)
-vienna_size = bbox_to_dimensions(vienna_bbox, resolution=resolution)
 
 mime_type_mapping = {
     "TIFF": MimeType.TIFF,
@@ -37,49 +35,14 @@ def plot_image(image, factor=1.0, clip_range=None, normalize=True):
     image *= factor
     if clip_range:
         image = np.clip(image, clip_range[0], clip_range[1])
+    plt.figure()
     plt.imshow(image)
+    plt.title("Sentinel Hub")
     plt.axis('off')
     plt.show()
 
 
-def true_color_with_cloud_mask(start_date, end_date):
-    evalscript_clm = """
-    //VERSION=3
-    function setup() {
-      return {
-        input: ["B02", "B03", "B04", "CLM"],
-        output: { bands: 3 }
-      }
-    }
-
-    function evaluatePixel(sample) {
-      if (sample.CLM == 1) {
-        return [0.75 + sample.B04, sample.B03, sample.B02]
-      }
-      return [3.5*sample.B04, 3.5*sample.B03, 3.5*sample.B02];
-    }
-    """
-
-    request_true_color = SentinelHubRequest(
-        data_folder="test_dir",
-        evalscript=evalscript_clm,
-        input_data=[
-            SentinelHubRequest.input_data(
-                data_collection=DataCollection.SENTINEL2_L1C,
-                time_interval=(start_date, end_date),
-            )
-        ],
-        responses=[SentinelHubRequest.output_response("default", MimeType.PNG)],
-        bbox=vienna_bbox,
-        size=vienna_size,
-        config=config,
-    )
-    data_with_cloud_mask_request = request_true_color.get_data(save_data=True)
-    data_with_cloud_mask = data_with_cloud_mask_request[0]
-    plot_image(data_with_cloud_mask, 1, [0,1])
-
-
-def true_color_without_clouds(start_date, end_date, download_checked, selected_file_type, coords_wgs84):
+def true_color_sentinel_hub(coords_wgs84, start_date, end_date, download_checked, selected_file_type, directory):
     """request true color image from Sentinel Hub, without clouds if time frame is at least a month"""
     # get selected file type, default is TIFF
     mime_type = mime_type_mapping.get(selected_file_type, MimeType.TIFF)
@@ -110,7 +73,7 @@ def true_color_without_clouds(start_date, end_date, download_checked, selected_f
     """
 
     request_true_color = SentinelHubRequest(
-        data_folder="test_dir",
+        data_folder=directory,
         evalscript=evalscript_true_color,
         input_data=[
             SentinelHubRequest.input_data(
@@ -144,7 +107,7 @@ def import_into_qgis():
     image_path = 'test_dir/c8088537648609eb3c59904559fcf26c/response.tiff'
 
     # load the raster layer into QGIS
-    raster_layer = QgsRasterLayer(image_path, "Vienna Sentinel Image")
+    raster_layer = QgsRasterLayer(image_path, "Sentinel Hub Image")
     if not raster_layer.isValid():
         QgsMessageLog.logMessage("Layer failed to load!", level=Qgis.Critical)
         print("File path:", image_path)

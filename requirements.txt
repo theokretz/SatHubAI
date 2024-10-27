@@ -1,0 +1,6 @@
+sentinelhub~=3.11.1
+PyQt5~=5.15.11
+numpy~=2.1.2
+rasterio~=1.4.1
+planetary-computer~=1.0.0
+matplotlib~=3.9.2
