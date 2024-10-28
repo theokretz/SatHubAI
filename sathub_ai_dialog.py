@@ -89,7 +89,7 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
         planetary_checked = self.cbPlanetaryComputer.isChecked()
 
         if self.coords_wgs84 is (None, None):
-            display_warning_message('No area selected.', 'Select Area!')
+            display_warning_message('Please select an area.', 'No area selected!')
             return
 
         if start_date > end_date:
@@ -97,19 +97,28 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
             return
 
         if download_checked and self.download_directory is None:
-            display_warning_message('No download directory selected.', 'Select Directory!')
+            display_warning_message('Please select download directory.', 'No Directory selected!')
             return
 
+        if not sentinel_checked and not planetary_checked:
+            display_warning_message("Please select a satellite provider.","No Satellite Provider selected!")
+            return
 
+        # sentinel hub
         try:
             if sentinel_checked:
                 true_color_sentinel_hub(self.coords_wgs84, start_date, end_date, download_checked, selected_file_type, self.download_directory)
-            if planetary_checked:
-                true_color_planetary_computer(self.coords_wgs84, start_date, end_date, selected_file_type, self.download_directory)
-            if not sentinel_checked and not planetary_checked:
-                display_warning_message("Please select a satellite provider.","No Satellite Provider selected!")
         except Exception as e:
             display_error_message(str(e))
+
+        # planetary computer
+        try:
+            if planetary_checked:
+                true_color_planetary_computer(self.coords_wgs84, start_date, end_date, selected_file_type, self.download_directory)
+        except Exception as e:
+            display_error_message(str(e))
+
+
 
 
     def on_tb_select_area_clicked(self):
