@@ -6,3 +6,7 @@
 # Datasource local storage ignored files
 /dataSources/
 /dataSources.local.xml
+/misc.xml
+/inspectionProfiles/profiles_settings.xml
+/sathub_ai.iml
+/vcs.xml

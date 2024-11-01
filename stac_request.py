@@ -1,20 +1,17 @@
-# planetary_computer_request.py
+# stac_request.py
 # credits: https://planetarycomputer.microsoft.com/docs/quickstarts/reading-stac/
 
 import rasterio.features
 import matplotlib.pyplot as plt
-import planetary_computer
-from pystac_client import Client
 from rasterio.enums import Resampling
-from qgis._core import QgsProject, QgsMessageLog, Qgis
-from qgis.core import QgsRasterLayer
+
 import os
 import uuid
 
-from .utils import display_error_message
+from .stac_service import StacService
+from .utils import import_into_qgis
 
-
-def plot_image(asset_url, scale_factor=0.1, title="Planetary Computer"):
+def plot_image(asset_url, title, scale_factor=0.1, ):
     with rasterio.open(asset_url) as src:
         image = src.read(
             [1, 2, 3],  # RGB bands
@@ -37,41 +34,24 @@ def plot_image(asset_url, scale_factor=0.1, title="Planetary Computer"):
     plt.show()
 
 
-def get_unique_filename(base_directory, base_filename="planetary_computer"):
+def get_unique_filename(base_directory, base_filename):
     unique_id = uuid.uuid4()
     unique_filename = f"{base_filename}_{unique_id}."
     return os.path.join(base_directory, unique_filename)
 
 
-def save_image(asset_url, directory, file_type):
-    file_path = get_unique_filename(directory) + file_type
+def save_image(asset_url, directory, file_type, filename):
+    file_path = get_unique_filename(directory, filename) + file_type
     with rasterio.open(asset_url) as src:
         image = src.read()
         profile = src.profile
         with rasterio.open(file_path, 'w', **profile) as dst:
             dst.write(image)
 
-    # TODO: add checkbox for this
-    import_into_qgis(file_path)
 
+def true_color_stac(coords_wgs84, start_date, end_date, download_checked, import_checked, file_type, directory, stac_provider):
 
-# TODO: put into utils
-def import_into_qgis(file_path):
-    # load the raster layer into QGIS
-    raster_layer = QgsRasterLayer(file_path, "Planetary Computer Image")
-    if not raster_layer.isValid():
-        QgsMessageLog.logMessage("Layer failed to load!", level=Qgis.Critical)
-        display_error_message("Image Layer failed to load!")
-    else:
-        QgsProject.instance().addMapLayer(raster_layer)
-
-
-def true_color_planetary_computer(coords_wgs84, start_date, end_date, download_checked, file_type, directory):
-    catalog = Client.open(
-        "https://planetarycomputer.microsoft.com/api/stac/v1",
-        # automatically sign the STAC metadata, so that assets can be accessed
-        modifier=planetary_computer.sign_inplace,
-    )
+    catalog = StacService.get_client(stac_provider)
 
     # get min and max coordinates
     min_lon = min(coords_wgs84[0].x(), coords_wgs84[1].x())
@@ -98,7 +78,10 @@ def true_color_planetary_computer(coords_wgs84, start_date, end_date, download_c
     selected_item = min(items, key=lambda item: item.properties["eo:cloud_cover"])
     asset_url = selected_item.assets["visual"].href
 
-    plot_image(asset_url)
+    plot_image(asset_url, stac_provider.plot_title)
+
+    if import_checked:
+        import_into_qgis(asset_url, stac_provider.qgis_layer_name)
 
     if download_checked:
-        save_image(asset_url, directory, file_type)
+        save_image(asset_url, directory, file_type, stac_provider.base_filename)

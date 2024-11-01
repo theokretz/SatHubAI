@@ -24,6 +24,7 @@
 
 import os
 
+from .stac_service import StacService
 # to load icons
 from . import resources_rc
 
@@ -36,7 +37,7 @@ from qgis.core import (
 from .select_area import SelectArea
 from .sentinel_hub_request import true_color_sentinel_hub
 from .utils import display_error_message, display_warning_message
-from .planetary_computer_request import true_color_planetary_computer
+from .stac_request import true_color_stac
 
 # This loads your .ui file so that PyQt can populate your plugin with the elements from Qt Designer
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
@@ -85,8 +86,13 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
         end_date = self.calendarEnd.selectedDate().toString("yyyy-MM-dd")
         download_checked = self.cbDownload.isChecked()
         selected_file_type = self.comboboxFileType.currentText()
+        import_checked = self.cb_import.isChecked()
+
+        # checkboxes provider
         sentinel_checked = self.cbSentinelHub.isChecked()
         planetary_checked = self.cbPlanetaryComputer.isChecked()
+        aws_checked = self.cbAWS.isChecked()
+
 
         if self.coords_wgs84 is (None, None):
             display_warning_message('Please select an area.', 'No area selected!')
@@ -100,7 +106,7 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
             display_warning_message('Please select download directory.', 'No Directory selected!')
             return
 
-        if not sentinel_checked and not planetary_checked:
+        if not sentinel_checked and not planetary_checked and not aws_checked:
             display_warning_message("Please select a satellite provider.","No Satellite Provider selected!")
             return
 
@@ -114,7 +120,14 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
         # planetary computer
         try:
             if planetary_checked:
-                true_color_planetary_computer(self.coords_wgs84, start_date, end_date, download_checked, selected_file_type, self.download_directory)
+                true_color_stac(self.coords_wgs84, start_date, end_date, download_checked, selected_file_type, self.download_directory, import_checked, stac_provider=StacService.Provider.PLANETARY_COMPUTER)
+        except Exception as e:
+            display_error_message(str(e))
+
+        # AWS
+        try:
+            if aws_checked:
+                true_color_stac(self.coords_wgs84, start_date, end_date, download_checked, selected_file_type, self.download_directory, import_checked, stac_provider=StacService.Provider.AWS)
         except Exception as e:
             display_error_message(str(e))
 

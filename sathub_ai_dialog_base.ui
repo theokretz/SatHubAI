@@ -220,6 +220,13 @@
          </property>
         </widget>
        </item>
+       <item>
+        <widget class="QCheckBox" name="cbAWS">
+         <property name="text">
+          <string>AWS</string>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
      <widget class="QWidget" name="verticalLayoutWidget">
@@ -283,6 +290,19 @@
       </property>
       <property name="storageMode">
        <enum>QgsFileWidget::GetDirectory</enum>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="cb_import">
+      <property name="geometry">
+       <rect>
+        <x>440</x>
+        <y>190</y>
+        <width>111</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Import into QGIS</string>
       </property>
      </widget>
     </widget>
