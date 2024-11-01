@@ -10,3 +10,11 @@
 /inspectionProfiles/profiles_settings.xml
 /sathub_ai.iml
 /vcs.xml
+README.txt
+# Ignore Python cache files
+__pycache__/
+*.pyc
+
+# Ignore IDE-specific files
+.idea/
+
