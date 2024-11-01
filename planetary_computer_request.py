@@ -66,7 +66,7 @@ def import_into_qgis(file_path):
         QgsProject.instance().addMapLayer(raster_layer)
 
 
-def true_color_planetary_computer(coords_wgs84, start_date, end_date, file_type, directory):
+def true_color_planetary_computer(coords_wgs84, start_date, end_date, download_checked, file_type, directory):
     catalog = Client.open(
         "https://planetarycomputer.microsoft.com/api/stac/v1",
         # automatically sign the STAC metadata, so that assets can be accessed
@@ -99,4 +99,6 @@ def true_color_planetary_computer(coords_wgs84, start_date, end_date, file_type,
     asset_url = selected_item.assets["visual"].href
 
     plot_image(asset_url)
-    save_image(asset_url, directory, file_type)
+
+    if download_checked:
+        save_image(asset_url, directory, file_type)

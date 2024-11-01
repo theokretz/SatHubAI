@@ -114,11 +114,9 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
         # planetary computer
         try:
             if planetary_checked:
-                true_color_planetary_computer(self.coords_wgs84, start_date, end_date, selected_file_type, self.download_directory)
+                true_color_planetary_computer(self.coords_wgs84, start_date, end_date, download_checked, selected_file_type, self.download_directory)
         except Exception as e:
             display_error_message(str(e))
-
-
 
 
     def on_tb_select_area_clicked(self):
