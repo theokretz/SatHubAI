@@ -24,20 +24,20 @@
 
 import os
 
-from .stac_service import StacService
+from .src.stac_service import StacService
 # to load icons
 from . import resources_rc
 
-from PyQt5.QtWidgets import QMessageBox, QDockWidget, QWidget
+from PyQt5.QtWidgets import QDockWidget, QWidget
 from qgis.PyQt import uic
 from qgis.core import (
-    QgsProject, QgsVectorLayer, QgsRasterLayer
+    QgsProject, QgsVectorLayer
 )
 
-from .select_area import SelectArea
-from .sentinel_hub_request import true_color_sentinel_hub
-from .utils import display_error_message, display_warning_message
-from .stac_request import true_color_stac
+from .src.select_area import SelectArea
+from .src.sentinel_hub_request import true_color_sentinel_hub
+from .src.utils import display_error_message, display_warning_message
+from .src.stac_request import true_color_stac
 
 # This loads your .ui file so that PyQt can populate your plugin with the elements from Qt Designer
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
