@@ -1,8 +1,10 @@
 # sentinel_hub_request.py
 # credits: https://sentinelhub-py.readthedocs.io/en/latest/examples/process_request.html
+import os
 
 import matplotlib.pyplot as plt
 import numpy as np
+import rasterio
 from qgis._core import QgsProject, QgsMessageLog, Qgis
 from qgis.core import QgsRasterLayer
 from sentinelhub import (
@@ -15,6 +17,10 @@ from sentinelhub import (
     SentinelHubRequest,
     bbox_to_dimensions,
 )
+import tempfile
+from rasterio.transform import from_bounds
+
+from .utils import import_into_qgis, display_error_message
 
 config = SHConfig()
 
@@ -41,8 +47,27 @@ def plot_image(image, factor=1.0, clip_range=None, normalize=True):
     plt.axis('off')
     plt.show()
 
+def import_into_qgis_without_download(image, size, bbox):
+    """load a satellite image into QGIS without downloading it first via temporary file."""
+    lower_left = bbox.lower_left
+    upper_right = bbox.upper_right
 
-def true_color_sentinel_hub(coords_wgs84, start_date, end_date, download_checked, selected_file_type, directory):
+    with tempfile.NamedTemporaryFile(suffix='.tif', delete=False) as tmp_file:
+        with rasterio.open(
+                tmp_file.name, 'w',
+                driver='GTiff',
+                width=size[0],
+                height=size[1],
+                count=3,
+                dtype=image.dtype,
+                transform=from_bounds(lower_left[0], lower_left[1], upper_right[0], upper_right[1], width=size[0], height=size[1]),
+                crs="EPSG:4326"
+        ) as tmp_dataset:
+            tmp_dataset.write(image.transpose(2, 0, 1))
+
+        import_into_qgis(tmp_file.name, "Sentinel Hub Layer")
+
+def true_color_sentinel_hub(coords_wgs84, start_date, end_date, download_checked, selected_file_type, directory, import_checked):
     """request true color image from Sentinel Hub, without clouds if time frame is at least a month"""
     # get selected file type, default is TIFF
     mime_type = mime_type_mapping.get(selected_file_type, MimeType.TIFF)
@@ -93,24 +118,28 @@ def true_color_sentinel_hub(coords_wgs84, start_date, end_date, download_checked
         image_download = request_true_color.get_data(save_data=True)
         image = image_download[0]
         if not image_download:
-            print("Image download failed!")
             QgsMessageLog.logMessage("Image download failed!", level=Qgis.Critical)
+            display_error_message("Image download failed!")
+
+        # check for import
+        if import_checked:
+            # get path to file
+            filename_list = request_true_color.get_filename_list()
+            filename = filename_list[0]
+            file_path = os.path.join(directory, filename)
+
+            import_into_qgis(file_path, "Sentinel Hub Layer")
+
     else:
         image = request_true_color.get_data()[0]
+
+        # check for import
+        if import_checked:
+            import_into_qgis_without_download(image, size, bbox)
+
 
     plot_image(image, 1, [0,1])
 
 
 
-def import_into_qgis():
-    # path to image, right now just a test path
-    image_path = 'test_dir/c8088537648609eb3c59904559fcf26c/response.tiff'
-
-    # load the raster layer into QGIS
-    raster_layer = QgsRasterLayer(image_path, "Sentinel Hub Image")
-    if not raster_layer.isValid():
-        QgsMessageLog.logMessage("Layer failed to load!", level=Qgis.Critical)
-        print("File path:", image_path)
-    else:
-        QgsProject.instance().addMapLayer(raster_layer)
 

@@ -113,7 +113,7 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
         # sentinel hub
         try:
             if sentinel_checked:
-                true_color_sentinel_hub(self.coords_wgs84, start_date, end_date, download_checked, selected_file_type, self.download_directory)
+                true_color_sentinel_hub(self.coords_wgs84, start_date, end_date, download_checked, selected_file_type, self.download_directory, import_checked)
         except Exception as e:
             display_error_message(str(e))
 
@@ -161,7 +161,7 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
 
         # vector layer
         vector_layer_path = os.path.join(current_directory, 'mapLayers', 'world-administrative-boundaries', 'world-administrative-boundaries.shp')
-        vector_layer = QgsVectorLayer(vector_layer_path, "Vector Layer", "ogr")
+        vector_layer = QgsVectorLayer(vector_layer_path, "World Map Layer", "ogr")
 
         if not vector_layer.isValid():
             raise FileNotFoundError(f"Could not load vector layer: {vector_layer_path}")
