@@ -87,6 +87,7 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
         download_checked = self.cbDownload.isChecked()
         selected_file_type = self.comboboxFileType.currentText()
         import_checked = self.cb_import.isChecked()
+        ndvi_checked = self.cb_ndvi.isChecked()
 
         # checkboxes provider
         sentinel_checked = self.cbSentinelHub.isChecked()
@@ -120,14 +121,14 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
         # planetary computer
         try:
             if planetary_checked:
-                true_color_stac(self.coords_wgs84, start_date, end_date, download_checked, selected_file_type, self.download_directory, import_checked, stac_provider=StacService.Provider.PLANETARY_COMPUTER)
+                true_color_stac(self.coords_wgs84, start_date, end_date, download_checked, selected_file_type, self.download_directory, import_checked,ndvi_checked, stac_provider=StacService.Provider.PLANETARY_COMPUTER)
         except Exception as e:
             display_error_message(str(e))
 
         # AWS
         try:
             if aws_checked:
-                true_color_stac(self.coords_wgs84, start_date, end_date, download_checked, selected_file_type, self.download_directory, import_checked, stac_provider=StacService.Provider.AWS)
+                true_color_stac(self.coords_wgs84, start_date, end_date, download_checked, selected_file_type, self.download_directory, import_checked,ndvi_checked, stac_provider=StacService.Provider.AWS)
         except Exception as e:
             display_error_message(str(e))
 

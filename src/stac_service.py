@@ -1,3 +1,4 @@
+# stac_service.py
 from enum import Enum
 from pystac_client import Client
 import planetary_computer
