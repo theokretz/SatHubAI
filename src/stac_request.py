@@ -59,6 +59,7 @@ def ndvi_calculation(selected_item, download_checked, directory, file_type, stac
         nir_url = selected_item.assets["B08"].href
     else:
         display_error_message("NDVI can not be calculated for this asset.")
+        return
 
 
     if not red_url or not nir_url:
