@@ -223,7 +223,7 @@
        <item>
         <widget class="QCheckBox" name="cbAWS">
          <property name="text">
-          <string>Earth on AWS</string>
+          <string>Earth Search</string>
          </property>
         </widget>
        </item>
@@ -232,9 +232,9 @@
      <widget class="QWidget" name="verticalLayoutWidget">
       <property name="geometry">
        <rect>
-        <x>320</x>
+        <x>323</x>
         <y>310</y>
-        <width>314</width>
+        <width>311</width>
         <height>204</height>
        </rect>
       </property>
@@ -254,7 +254,7 @@
      <widget class="QWidget" name="verticalLayoutWidget_2">
       <property name="geometry">
        <rect>
-        <x>10</x>
+        <x>0</x>
         <y>310</y>
         <width>314</width>
         <height>204</height>
