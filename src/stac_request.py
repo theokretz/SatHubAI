@@ -90,21 +90,21 @@ def ndvi_calculation(selected_item, download_checked, directory, file_type, stac
 
 
 
-def true_color_stac(coords_wgs84, start_date, end_date, download_checked, file_type, directory, import_checked, ndvi_checked, stac_provider):
+def true_color_stac(config, stac_provider):
 
     catalog = StacService.get_client(stac_provider)
 
     # get min and max coordinates
-    min_lon = min(coords_wgs84[0].x(), coords_wgs84[1].x())
-    max_lon = max(coords_wgs84[0].x(), coords_wgs84[1].x())
-    min_lat = min(coords_wgs84[0].y(), coords_wgs84[1].y())
-    max_lat = max(coords_wgs84[0].y(), coords_wgs84[1].y())
+    min_lon = min(config.coords[0].x(), config.coords[1].x())
+    max_lon = max(config.coords[0].x(), config.coords[1].x())
+    min_lat = min(config.coords[0].y(), config.coords[1].y())
+    max_lat = max(config.coords[0].y(), config.coords[1].y())
     bbox = (min_lon, min_lat, max_lon, max_lat)
 
     search = catalog.search(
         collections=["sentinel-2-l2a"],
         bbox=bbox,
-        datetime=f"{start_date}/{end_date}",
+        datetime=f"{config.start_date}/{config.end_date}",
         query={
             # filter for minimal cloudiness
             "eo:cloud_cover": {"lt": 10},
@@ -121,13 +121,13 @@ def true_color_stac(coords_wgs84, start_date, end_date, download_checked, file_t
 
     plot_image(asset_url, stac_provider.plot_title)
 
-    if import_checked:
+    if config.import_checked:
         import_into_qgis(asset_url, stac_provider.qgis_layer_name)
 
-    if download_checked:
-        save_image(asset_url, directory, file_type, stac_provider.filename)
+    if config.download_checked:
+        save_image(asset_url, config.download_directory, config.selected_file_type, stac_provider.filename)
 
-    if ndvi_checked:
-       ndvi_calculation(selected_item, download_checked, directory, file_type, stac_provider)
+    if config.ndvi_checked:
+       ndvi_calculation(selected_item, config.download_checked, config.download_directory, config.selected_file_type, stac_provider)
 
 

@@ -24,6 +24,7 @@
 
 import os
 
+from .src.request_config import RequestConfig
 from .src.stac_service import StacService
 # to load icons
 from . import resources_rc
@@ -92,7 +93,18 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
         # checkboxes provider
         sentinel_checked = self.cbSentinelHub.isChecked()
         planetary_checked = self.cbPlanetaryComputer.isChecked()
-        aws_checked = self.cbAWS.isChecked()
+        earth_search_checked = self.cbEarthSearch.isChecked()
+
+        config = RequestConfig(
+            self.coords_wgs84,
+            start_date,
+            end_date,
+            download_checked,
+            selected_file_type,
+            self.download_directory,
+            import_checked,
+            ndvi_checked
+        )
 
 
         if self.coords_wgs84 is (None, None):
@@ -107,28 +119,28 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
             display_warning_message('Please select download directory.', 'No Directory selected!')
             return
 
-        if not sentinel_checked and not planetary_checked and not aws_checked:
+        if not sentinel_checked and not planetary_checked and not earth_search_checked:
             display_warning_message("Please select a satellite provider.","No Satellite Provider selected!")
             return
 
         # sentinel hub
         try:
             if sentinel_checked:
-                true_color_sentinel_hub(self.coords_wgs84, start_date, end_date, download_checked, selected_file_type, self.download_directory, import_checked)
+                true_color_sentinel_hub(config)
         except Exception as e:
             display_error_message(str(e))
 
         # planetary computer
         try:
             if planetary_checked:
-                true_color_stac(self.coords_wgs84, start_date, end_date, download_checked, selected_file_type, self.download_directory, import_checked,ndvi_checked, stac_provider=StacService.Provider.PLANETARY_COMPUTER)
+                true_color_stac(config, stac_provider=StacService.Provider.PLANETARY_COMPUTER)
         except Exception as e:
             display_error_message(str(e))
 
-        # AWS
+        # EARTH SEARCH
         try:
-            if aws_checked:
-                true_color_stac(self.coords_wgs84, start_date, end_date, download_checked, selected_file_type, self.download_directory, import_checked,ndvi_checked, stac_provider=StacService.Provider.AWS)
+            if earth_search_checked:
+                true_color_stac(config, stac_provider=StacService.Provider.EARTH_SEARCH)
         except Exception as e:
             display_error_message(str(e))
 

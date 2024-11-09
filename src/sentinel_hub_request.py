@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import rasterio
 from qgis._core import QgsProject, QgsMessageLog, Qgis
-from qgis.core import QgsRasterLayer
 from sentinelhub import (
     SHConfig,
     CRS,
@@ -22,9 +21,9 @@ from rasterio.transform import from_bounds
 
 from .utils import import_into_qgis, display_error_message
 
-config = SHConfig()
+sh_config = SHConfig()
 
-if not config.sh_client_id or not config.sh_client_secret:
+if not sh_config.sh_client_id or not sh_config.sh_client_secret:
     print("Warning! To use Process API, please provide the credentials (OAuth client ID and client secret).")
 
 resolution = 60
@@ -67,13 +66,13 @@ def import_into_qgis_without_download(image, size, bbox):
 
         import_into_qgis(tmp_file.name, "Sentinel Hub Layer")
 
-def true_color_sentinel_hub(coords_wgs84, start_date, end_date, download_checked, selected_file_type, directory, import_checked):
+def true_color_sentinel_hub(config):
     """request true color image from Sentinel Hub, without clouds if time frame is at least a month"""
     # get selected file type, default is TIFF
-    mime_type = mime_type_mapping.get(selected_file_type, MimeType.TIFF)
+    mime_type = mime_type_mapping.get(config.selected_file_type, MimeType.TIFF)
 
     # coords
-    coords = (coords_wgs84[0].x(), coords_wgs84[0].y(), coords_wgs84[1].x(), coords_wgs84[1].y())
+    coords = (config.coords[0].x(), config.coords[0].y(), config.coords[1].x(), config.coords[1].y())
     bbox = BBox(bbox=coords, crs=CRS.WGS84)
     size = bbox_to_dimensions(bbox, resolution=resolution)
 
@@ -98,23 +97,23 @@ def true_color_sentinel_hub(coords_wgs84, start_date, end_date, download_checked
     """
 
     request_true_color = SentinelHubRequest(
-        data_folder=directory,
+        data_folder=config.download_directory,
         evalscript=evalscript_true_color,
         input_data=[
             SentinelHubRequest.input_data(
                 data_collection=DataCollection.SENTINEL2_L1C,
-                time_interval=(start_date, end_date),
+                time_interval=(config.start_date, config.end_date),
                 mosaicking_order=MosaickingOrder.LEAST_CC,
             )
         ],
         responses=[SentinelHubRequest.output_response("default", mime_type)],
         bbox=bbox,
         size=size,
-        config=config,
+        config=sh_config,
     )
 
     # check for download
-    if download_checked:
+    if config.download_checked:
         image_download = request_true_color.get_data(save_data=True)
         image = image_download[0]
         if not image_download:
@@ -122,11 +121,11 @@ def true_color_sentinel_hub(coords_wgs84, start_date, end_date, download_checked
             display_error_message("Image download failed!")
 
         # check for import
-        if import_checked:
+        if config.import_checked:
             # get path to file
             filename_list = request_true_color.get_filename_list()
             filename = filename_list[0]
-            file_path = os.path.join(directory, filename)
+            file_path = os.path.join(config.download_directory, filename)
 
             import_into_qgis(file_path, "Sentinel Hub Layer")
 
@@ -134,7 +133,7 @@ def true_color_sentinel_hub(coords_wgs84, start_date, end_date, download_checked
         image = request_true_color.get_data()[0]
 
         # check for import
-        if import_checked:
+        if config.import_checked:
             import_into_qgis_without_download(image, size, bbox)
 
 

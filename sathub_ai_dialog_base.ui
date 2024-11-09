@@ -221,7 +221,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="cbAWS">
+        <widget class="QCheckBox" name="cbEarthSearch">
          <property name="text">
           <string>Earth Search</string>
          </property>
@@ -234,7 +234,7 @@
        <rect>
         <x>323</x>
         <y>310</y>
-        <width>311</width>
+        <width>314</width>
         <height>204</height>
        </rect>
       </property>
