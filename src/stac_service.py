@@ -11,11 +11,11 @@ class StacService:
             "planetary_computer_image",
             "Planetary Computer Layer"
         )
-        AWS = (
+        EARTH_SEARCH = (
             "https://earth-search.aws.element84.com/v1",
-            "AWS Image",
-            "aws_image",
-            "AWS Layer"
+            "Earth Search Image",
+            "earth_search_image",
+            "Earth Search Layer"
         )
 
         @property

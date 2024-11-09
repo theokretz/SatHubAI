@@ -51,7 +51,7 @@ def save_image(asset_url, directory, file_type, filename):
 
 
 def ndvi_calculation(selected_item, download_checked, directory, file_type, stac_provider):
-    if stac_provider == stac_provider.AWS:
+    if stac_provider == stac_provider.EARTH_SEARCH:
         red_url = selected_item.assets["red"].href
         nir_url = selected_item.assets["nir"].href
     elif stac_provider == stac_provider.PLANETARY_COMPUTER:
