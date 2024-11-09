@@ -24,6 +24,7 @@
 
 import os
 
+from .src.stac_requester import StacRequester
 from .src.options_dialog import OptionsDialog
 from .src.request_config import RequestConfig
 from .src.stac_service import StacService
@@ -37,9 +38,9 @@ from qgis.core import (
 )
 
 from .src.select_area import SelectArea
-from .src.sentinel_hub_request import true_color_sentinel_hub
-from .src.utils import display_error_message, display_warning_message
-from .src.stac_request import true_color_stac
+from .src.sentinel_hub_requester import SentinelHubRequester
+from .src.utils import display_warning_message
+
 
 # This loads your .ui file so that PyQt can populate your plugin with the elements from Qt Designer
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
@@ -136,25 +137,20 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
             return
 
         # sentinel hub
-        try:
-            if sentinel_checked:
-                true_color_sentinel_hub(config)
-        except Exception as e:
-            display_error_message(str(e))
+        if sentinel_checked:
+            requester = SentinelHubRequester(config)
+            requester.request_data()
 
         # planetary computer
-        try:
-            if planetary_checked:
-                true_color_stac(config, stac_provider=StacService.Provider.PLANETARY_COMPUTER)
-        except Exception as e:
-            display_error_message(str(e))
+        if planetary_checked:
+            requester = StacRequester(config, StacService.Provider.PLANETARY_COMPUTER)
+            requester.request_data()
 
-        # EARTH SEARCH
-        try:
-            if earth_search_checked:
-                true_color_stac(config, stac_provider=StacService.Provider.EARTH_SEARCH)
-        except Exception as e:
-            display_error_message(str(e))
+        # earth search
+        if earth_search_checked:
+            requester = StacRequester(config, StacService.Provider.EARTH_SEARCH)
+            requester.request_data()
+
 
 
     def on_tb_select_area_clicked(self):
