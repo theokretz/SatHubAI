@@ -3,6 +3,8 @@
     <file>icon.png</file>
   </qresource>
   <qresource prefix="/icons">
+    <file>icons/sliders-solid.svg</file>
+    <file>icons/options.svg</file>
     <file>icons/globe-solid.svg</file>
     <file>icons/map-location-dot-solid.svg</file>
     <file>icons/earth-europe-solid.svg</file>

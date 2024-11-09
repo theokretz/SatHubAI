@@ -24,6 +24,7 @@
 
 import os
 
+from .src.options_dialog import OptionsDialog
 from .src.request_config import RequestConfig
 from .src.stac_service import StacService
 # to load icons
@@ -50,6 +51,8 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
         """Constructor."""
         super(SatHubAIDialog, self).__init__(parent)
 
+        self.options_dialog = None
+
         # to select area on the map
         self.select_area_tool = None
 
@@ -70,6 +73,8 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
         self.pbSubmit.clicked.connect(self.on_pb_submit_clicked)
         self.tbSelectArea.clicked.connect(self.on_tb_select_area_clicked)
         self.fwGetDirectory.fileChanged.connect(self.on_fw_get_directory_clicked)
+        self.pb_options_sh.clicked.connect(self.open_options_dialog)
+
 
         self.setWindowTitle("SatHubAI")
         # ensure window is docked and not floating
@@ -77,6 +82,13 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
 
         # dock widget
         self.setWidget(self.main_widget)
+
+
+    def open_options_dialog(self):
+        """Opens the options dialog for satellite providers"""
+        self.options_dialog = OptionsDialog(self)
+        self.options_dialog.exec_()
+
 
     def on_fw_get_directory_clicked(self):
         self.download_directory = self.fwGetDirectory.filePath()

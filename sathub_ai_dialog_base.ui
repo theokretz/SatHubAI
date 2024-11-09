@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>661</width>
-    <height>624</height>
+    <width>665</width>
+    <height>873</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -23,29 +23,13 @@
       <property name="geometry">
        <rect>
         <x>230</x>
-        <y>560</y>
+        <y>720</y>
         <width>161</width>
         <height>23</height>
        </rect>
       </property>
       <property name="text">
        <string>Submit</string>
-      </property>
-     </widget>
-     <widget class="QCheckBox" name="cbDownload">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>190</y>
-        <width>101</width>
-        <height>17</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Download</string>
-      </property>
-      <property name="checked">
-       <bool>false</bool>
       </property>
      </widget>
      <widget class="QLabel" name="label_4">
@@ -74,7 +58,7 @@
        <string/>
       </property>
       <property name="icon">
-       <iconset>
+       <iconset resource="resources.qrc">
         <normaloff>:/icons/icons/map-location-dot-solid.svg</normaloff>:/icons/icons/map-location-dot-solid.svg</iconset>
       </property>
       <property name="iconSize">
@@ -87,13 +71,13 @@
      <widget class="QWidget" name="layoutWidget">
       <property name="geometry">
        <rect>
-        <x>10</x>
-        <y>230</y>
+        <x>30</x>
+        <y>360</y>
         <width>241</width>
         <height>22</height>
        </rect>
       </property>
-      <layout class="QHBoxLayout" name="horizontalLayout">
+      <layout class="QHBoxLayout" name="file_type_selection">
        <item>
         <widget class="QLabel" name="label">
          <property name="text">
@@ -189,8 +173,8 @@
      <widget class="QWidget" name="horizontalLayoutWidget">
       <property name="geometry">
        <rect>
-        <x>10</x>
-        <y>90</y>
+        <x>0</x>
+        <y>150</y>
         <width>631</width>
         <height>41</height>
        </rect>
@@ -204,14 +188,69 @@
         </widget>
        </item>
        <item>
+        <spacer name="horizontalSpacer_5">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
         <widget class="QCheckBox" name="cbSentinelHub">
+         <property name="maximumSize">
+          <size>
+           <width>90</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="text">
           <string>Sentinel Hub</string>
          </property>
         </widget>
        </item>
        <item>
+        <widget class="QPushButton" name="pb_options_sh">
+         <property name="maximumSize">
+          <size>
+           <width>31</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="resources.qrc">
+           <normaloff>:/icons/icons/sliders-solid.svg</normaloff>:/icons/icons/sliders-solid.svg</iconset>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_3">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>30</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
         <widget class="QCheckBox" name="cbPlanetaryComputer">
+         <property name="maximumSize">
+          <size>
+           <width>120</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="text">
           <string>Planetary Computer</string>
          </property>
@@ -221,9 +260,71 @@
         </widget>
        </item>
        <item>
+        <widget class="QPushButton" name="pushButton_2">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>31</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="resources.qrc">
+           <normaloff>:/icons/icons/sliders-solid.svg</normaloff>:/icons/icons/sliders-solid.svg</iconset>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_4">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>30</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
         <widget class="QCheckBox" name="cbEarthSearch">
+         <property name="maximumSize">
+          <size>
+           <width>90</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="text">
           <string>Earth Search</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_4">
+         <property name="maximumSize">
+          <size>
+           <width>31</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="resources.qrc">
+           <normaloff>:/icons/icons/sliders-solid.svg</normaloff>:/icons/icons/sliders-solid.svg</iconset>
          </property>
         </widget>
        </item>
@@ -232,8 +333,8 @@
      <widget class="QWidget" name="verticalLayoutWidget">
       <property name="geometry">
        <rect>
-        <x>323</x>
-        <y>310</y>
+        <x>330</x>
+        <y>460</y>
         <width>314</width>
         <height>204</height>
        </rect>
@@ -254,8 +355,8 @@
      <widget class="QWidget" name="verticalLayoutWidget_2">
       <property name="geometry">
        <rect>
-        <x>0</x>
-        <y>310</y>
+        <x>7</x>
+        <y>460</y>
         <width>314</width>
         <height>204</height>
        </rect>
@@ -273,30 +374,11 @@
        </item>
       </layout>
      </widget>
-     <widget class="QgsFileWidget" name="fwGetDirectory">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
-      <property name="geometry">
-       <rect>
-        <x>120</x>
-        <y>190</y>
-        <width>211</width>
-        <height>27</height>
-       </rect>
-      </property>
-      <property name="dialogTitle">
-       <string>Select Directory</string>
-      </property>
-      <property name="storageMode">
-       <enum>QgsFileWidget::GetDirectory</enum>
-      </property>
-     </widget>
      <widget class="QCheckBox" name="cb_import">
       <property name="geometry">
        <rect>
-        <x>440</x>
-        <y>190</y>
+        <x>460</x>
+        <y>330</y>
         <width>111</width>
         <height>17</height>
        </rect>
@@ -308,14 +390,161 @@
      <widget class="QCheckBox" name="cb_ndvi">
       <property name="geometry">
        <rect>
-        <x>180</x>
-        <y>150</y>
+        <x>460</x>
+        <y>300</y>
         <width>70</width>
         <height>17</height>
        </rect>
       </property>
       <property name="text">
        <string>NDVI</string>
+      </property>
+     </widget>
+     <widget class="QWidget" name="horizontalLayoutWidget_2">
+      <property name="geometry">
+       <rect>
+        <x>140</x>
+        <y>200</y>
+        <width>301</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <item>
+        <spacer name="horizontalSpacer_8">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>32</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="cbCopernicus">
+         <property name="text">
+          <string>Copernicus</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_3">
+         <property name="maximumSize">
+          <size>
+           <width>31</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="resources.qrc">
+           <normaloff>:/icons/icons/sliders-solid.svg</normaloff>:/icons/icons/sliders-solid.svg</iconset>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_7">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="cbLandsatLook">
+         <property name="text">
+          <string>LandsatLook</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_5">
+         <property name="maximumSize">
+          <size>
+           <width>31</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="resources.qrc">
+           <normaloff>:/icons/icons/sliders-solid.svg</normaloff>:/icons/icons/sliders-solid.svg</iconset>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="horizontalLayoutWidget_3">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>300</y>
+        <width>241</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout_4">
+       <item>
+        <widget class="QCheckBox" name="cbDownload">
+         <property name="text">
+          <string>Download</string>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_6">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QgsFileWidget" name="fwGetDirectory">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="dialogTitle">
+          <string>Select Directory</string>
+         </property>
+         <property name="storageMode">
+          <enum>QgsFileWidget::GetDirectory</enum>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QCheckBox" name="cb_plot_image">
+      <property name="geometry">
+       <rect>
+        <x>460</x>
+        <y>360</y>
+        <width>81</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Plot Image</string>
       </property>
      </widget>
     </widget>
