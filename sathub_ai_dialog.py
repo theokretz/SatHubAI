@@ -24,10 +24,13 @@
 
 import os
 
-from .src.stac_requester import StacRequester
-from .src.options_dialog import OptionsDialog
-from .src.request_config import RequestConfig
-from .src.stac_service import StacService
+from .src.requester.landsatlook_requester import LandsatLookRequester
+from .src.requester.copernicus_requester import CopernicusRequester
+from .src.requester.stac_requester import StacRequester
+from .src.options_dialog.options_dialog import OptionsDialog
+from .src.requester.request_config import RequestConfig
+from .src.requester.stac_service import StacService
+
 # to load icons
 from . import resources_rc
 
@@ -38,7 +41,7 @@ from qgis.core import (
 )
 
 from .src.select_area import SelectArea
-from .src.sentinel_hub_requester import SentinelHubRequester
+from .src.requester.sentinel_hub_requester import SentinelHubRequester
 from .src.utils import display_warning_message
 
 
@@ -107,6 +110,9 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
         sentinel_checked = self.cbSentinelHub.isChecked()
         planetary_checked = self.cbPlanetaryComputer.isChecked()
         earth_search_checked = self.cbEarthSearch.isChecked()
+        copernicus_checked = self.cbCopernicus.isChecked()
+        landsatlook_checked = self.cbLandsatLook.isChecked()
+
 
         config = RequestConfig(
             self.coords_wgs84,
@@ -120,7 +126,7 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
         )
 
 
-        if self.coords_wgs84 is (None, None):
+        if self.coords_wgs84 == (None, None):
             display_warning_message('Please select an area.', 'No area selected!')
             return
 
@@ -132,7 +138,7 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
             display_warning_message('Please select download directory.', 'No Directory selected!')
             return
 
-        if not sentinel_checked and not planetary_checked and not earth_search_checked:
+        if not sentinel_checked and not planetary_checked and not earth_search_checked and not copernicus_checked and not landsatlook_checked:
             display_warning_message("Please select a satellite provider.","No Satellite Provider selected!")
             return
 
@@ -151,6 +157,14 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
             requester = StacRequester(config, StacService.Provider.EARTH_SEARCH)
             requester.request_data()
 
+        # copernicus
+        if copernicus_checked:
+            requester = CopernicusRequester(config)
+            requester.request_data()
+
+        if landsatlook_checked:
+            requester = LandsatLookRequester(config)
+            requester.request_data()
 
 
     def on_tb_select_area_clicked(self):

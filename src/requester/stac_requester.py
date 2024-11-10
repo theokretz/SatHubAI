@@ -8,10 +8,10 @@ import numpy as np
 import os
 import uuid
 
-from .exceptions.ndvi_calculation_exception import NDVICalculationError
+from ..exceptions.ndvi_calculation_exception import NDVICalculationError
 from .requester import Requester
 from .stac_service import StacService
-from .utils import import_into_qgis, display_error_message
+from ..utils import import_into_qgis, display_error_message
 
 class StacRequester(Requester):
     def __init__(self, config, provider):
@@ -19,7 +19,7 @@ class StacRequester(Requester):
         self.config = config
         self.provider = provider
 
-    def plot_image(self, asset_url, scale_factor=0.1, ):
+    def plot_image(self, asset_url, scale_factor=0.1):
         with rasterio.open(asset_url) as src:
             image = src.read(
                 [1, 2, 3],  # RGB bands

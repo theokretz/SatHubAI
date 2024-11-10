@@ -19,9 +19,9 @@ from sentinelhub import (
 import tempfile
 from rasterio.transform import from_bounds
 
-from .exceptions.missing_credentials_exception import MissingCredentialsException
+from ..exceptions.missing_credentials_exception import MissingCredentialsException
 from .requester import Requester
-from .utils import import_into_qgis, display_error_message
+from ..utils import import_into_qgis, display_error_message
 
 
 class SentinelHubRequester(Requester):

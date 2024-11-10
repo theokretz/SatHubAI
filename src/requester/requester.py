@@ -1,9 +1,9 @@
 # requester.py
 from abc import ABC, abstractmethod
 
-from .exceptions.missing_credentials_exception import MissingCredentialsException
-from .exceptions.ndvi_calculation_exception import NDVICalculationError
-from .utils import display_error_message
+from ..exceptions.missing_credentials_exception import MissingCredentialsException
+from ..exceptions.ndvi_calculation_exception import NDVICalculationError
+from ..utils import display_error_message
 
 
 class Requester:
