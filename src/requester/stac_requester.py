@@ -11,13 +11,18 @@ import uuid
 from ..exceptions.ndvi_calculation_exception import NDVICalculationError
 from .requester import Requester
 from .stac_service import StacService
-from ..utils import import_into_qgis, display_error_message
+from ..utils import import_into_qgis
 
 class StacRequester(Requester):
     def __init__(self, config, provider):
         super().__init__(config)
         self.config = config
         self.provider = provider
+
+        self.collection_mapping = {
+            "Sentinel-2 L1C": "sentinel-2-l1c" ,
+            "Sentinel-2 L2A": "sentinel-2-l2a",
+        }
 
     def plot_image(self, asset_url, scale_factor=0.1):
         with rasterio.open(asset_url) as src:
@@ -100,8 +105,13 @@ class StacRequester(Requester):
         max_lat = max(self.config.coords[0].y(), self.config.coords[1].y())
         bbox = (min_lon, min_lat, max_lon, max_lat)
 
+        if self.config.additional_options:
+            collection =  self.collection_mapping.get(self.config.additional_options.collection)
+        else:
+            collection = "sentinel-2-l1c"
+
         search = catalog.search(
-            collections=["sentinel-2-l2a"],
+            collections=collection,
             bbox=bbox,
             datetime=f"{self.config.start_date}/{self.config.end_date}",
             query={
@@ -126,5 +136,5 @@ class StacRequester(Requester):
         if self.config.download_checked:
             self.save_image(asset_url)
 
-        if self.config.ndvi_checked:
+        if self.config.additional_options.ndvi_checked:
            self.ndvi_calculation(selected_item)

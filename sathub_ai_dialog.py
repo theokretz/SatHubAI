@@ -56,6 +56,7 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
         super(SatHubAIDialog, self).__init__(parent)
 
         self.options_dialog = None
+        self.additional_options = None
 
         # to select area on the map
         self.select_area_tool = None
@@ -77,7 +78,9 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
         self.pbSubmit.clicked.connect(self.on_pb_submit_clicked)
         self.tbSelectArea.clicked.connect(self.on_tb_select_area_clicked)
         self.fwGetDirectory.fileChanged.connect(self.on_fw_get_directory_clicked)
-        self.pb_options_sh.clicked.connect(self.open_options_dialog)
+        self.pb_options_sh.clicked.connect(lambda: self.open_options_dialog("SENTINEL_HUB"))
+        self.pb_options_pc.clicked.connect(lambda: self.open_options_dialog("PLANETARY_COMPUTER"))
+        self.pb_options_es.clicked.connect(lambda: self.open_options_dialog("EARTH_SEARCH"))
 
 
         self.setWindowTitle("SatHubAI")
@@ -88,11 +91,17 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
         self.setWidget(self.main_widget)
 
 
-    def open_options_dialog(self):
+    def open_options_dialog(self, provider):
         """Opens the options dialog for satellite providers"""
-        self.options_dialog = OptionsDialog(self)
+        self.options_dialog = OptionsDialog(parent=self, provider=provider)
+
+        # connect options emit signal to function
+        self.options_dialog.options.connect(self.handle_additional_options)
+
         self.options_dialog.exec_()
 
+    def handle_additional_options(self, options_config):
+        self.additional_options = options_config
 
     def on_fw_get_directory_clicked(self):
         self.download_directory = self.fwGetDirectory.filePath()
@@ -122,7 +131,7 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
             selected_file_type,
             self.download_directory,
             import_checked,
-            ndvi_checked
+            self.additional_options
         )
 
 
@@ -145,26 +154,26 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
         # sentinel hub
         if sentinel_checked:
             requester = SentinelHubRequester(config)
-            requester.request_data()
+            requester.execute_request()
 
         # planetary computer
         if planetary_checked:
             requester = StacRequester(config, StacService.Provider.PLANETARY_COMPUTER)
-            requester.request_data()
+            requester.execute_request()
 
         # earth search
         if earth_search_checked:
             requester = StacRequester(config, StacService.Provider.EARTH_SEARCH)
-            requester.request_data()
+            requester.execute_request()
 
         # copernicus
         if copernicus_checked:
             requester = CopernicusRequester(config)
-            requester.request_data()
+            requester.execute_request()
 
         if landsatlook_checked:
             requester = LandsatLookRequester(config)
-            requester.request_data()
+            requester.execute_request()
 
 
     def on_tb_select_area_clicked(self):

@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
-  <widget class="QComboBox" name="comboBox">
+  <widget class="QComboBox" name="comboboxCollection">
    <property name="geometry">
     <rect>
      <x>90</x>
@@ -25,26 +25,6 @@
    <property name="editable">
     <bool>false</bool>
    </property>
-   <item>
-    <property name="text">
-     <string> Sentinel-2 L1C</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string> Sentinel-2 L2A</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string> Sentinel-1</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>Sentinel-3 OLCI</string>
-    </property>
-   </item>
   </widget>
   <widget class="QLabel" name="label">
    <property name="geometry">
@@ -111,7 +91,7 @@
     <string>Further Analysis:</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="pushButton">
+  <widget class="QPushButton" name="pbSubmit">
    <property name="geometry">
     <rect>
      <x>170</x>
