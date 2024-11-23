@@ -502,6 +502,19 @@
        <string>Select Satellite Provider:</string>
       </property>
      </widget>
+     <widget class="QPushButton" name="pb_test">
+      <property name="geometry">
+       <rect>
+        <x>320</x>
+        <y>290</y>
+        <width>75</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>TEST</string>
+      </property>
+     </widget>
     </widget>
    </item>
   </layout>

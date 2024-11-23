@@ -4,3 +4,8 @@ numpy~=2.1.2
 rasterio~=1.4.1
 planetary-computer~=1.0.0
 matplotlib~=3.9.2
+
+requests~=2.32.3
+ee~=0.2
+earthengine-api~=1.4.0
+earthaccess~=0.12.0

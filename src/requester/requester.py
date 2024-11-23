@@ -1,4 +1,5 @@
 # requester.py
+import traceback
 from abc import ABC, abstractmethod
 
 from ..exceptions.missing_credentials_exception import MissingCredentialsException
@@ -24,4 +25,5 @@ class Requester:
         except MissingCredentialsException as e:
             display_error_message(str(e), "Credentials are missing")
         except Exception as e:
-            display_error_message(str(e))
+            error_message = f"{str(e)}\n\nTraceback:\n{traceback.format_exc()}"
+            display_error_message(error_message)

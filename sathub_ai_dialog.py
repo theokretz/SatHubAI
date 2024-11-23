@@ -24,6 +24,9 @@
 
 import os
 
+from .src.requester.help import google
+from .src.requester.google_earth_engine_requester import start
+from .src.requester.nasa_requester import nasa
 from .src.requester.landsatlook_requester import LandsatLookRequester
 from .src.requester.copernicus_requester import CopernicusRequester
 from .src.requester.stac_requester import StacRequester
@@ -82,6 +85,8 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
         self.pb_options_pc.clicked.connect(lambda: self.open_options_dialog("PLANETARY_COMPUTER"))
         self.pb_options_es.clicked.connect(lambda: self.open_options_dialog("EARTH_SEARCH"))
 
+        self.pb_test.clicked.connect(self.on_pb_test)
+
 
         self.setWindowTitle("SatHubAI")
         # ensure window is docked and not floating
@@ -89,6 +94,10 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
 
         # dock widget
         self.setWidget(self.main_widget)
+
+
+    def on_pb_test(self):
+        start(self)
 
 
     def open_options_dialog(self, provider):
