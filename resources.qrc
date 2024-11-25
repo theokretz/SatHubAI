@@ -3,6 +3,7 @@
     <file>icon.png</file>
   </qresource>
   <qresource prefix="/icons">
+    <file>icons/login.svg</file>
     <file>icons/sliders-solid.svg</file>
     <file>icons/options.svg</file>
     <file>icons/globe-solid.svg</file>

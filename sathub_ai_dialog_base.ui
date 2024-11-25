@@ -58,7 +58,7 @@
        <string/>
       </property>
       <property name="icon">
-       <iconset>
+       <iconset resource="resources.qrc">
         <normaloff>:/icons/icons/map-location-dot-solid.svg</normaloff>:/icons/icons/map-location-dot-solid.svg</iconset>
       </property>
       <property name="iconSize">
@@ -311,24 +311,7 @@
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_2">
-       <item row="0" column="7">
-        <widget class="QPushButton" name="pb_options_es">
-         <property name="maximumSize">
-          <size>
-           <width>31</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-         <property name="icon">
-          <iconset>
-           <normaloff>:/icons/icons/sliders-solid.svg</normaloff>:/icons/icons/sliders-solid.svg</iconset>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="3">
+       <item row="0" column="4">
         <widget class="QCheckBox" name="cbPlanetaryComputer">
          <property name="maximumSize">
           <size>
@@ -344,7 +327,54 @@
          </property>
         </widget>
        </item>
-       <item row="0" column="2">
+       <item row="1" column="1">
+        <widget class="QPushButton" name="pushButton_5">
+         <property name="maximumSize">
+          <size>
+           <width>31</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="resources.qrc">
+           <normaloff>:/icons/icons/sliders-solid.svg</normaloff>:/icons/icons/sliders-solid.svg</iconset>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="5">
+        <widget class="QPushButton" name="pb_options_pc">
+         <property name="maximumSize">
+          <size>
+           <width>31</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="resources.qrc">
+           <normaloff>:/icons/icons/sliders-solid.svg</normaloff>:/icons/icons/sliders-solid.svg</iconset>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QCheckBox" name="cbSentinelHub">
+         <property name="maximumSize">
+          <size>
+           <width>90</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Sentinel Hub</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="3">
         <spacer name="horizontalSpacer_3">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
@@ -357,55 +387,14 @@
          </property>
         </spacer>
        </item>
-       <item row="0" column="4">
-        <widget class="QPushButton" name="pb_options_pc">
-         <property name="maximumSize">
-          <size>
-           <width>31</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-         <property name="icon">
-          <iconset>
-           <normaloff>:/icons/icons/sliders-solid.svg</normaloff>:/icons/icons/sliders-solid.svg</iconset>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QPushButton" name="pb_options_sh">
-         <property name="maximumSize">
-          <size>
-           <width>31</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-         <property name="icon">
-          <iconset>
-           <normaloff>:/icons/icons/sliders-solid.svg</normaloff>:/icons/icons/sliders-solid.svg</iconset>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="3">
+       <item row="1" column="4">
         <widget class="QCheckBox" name="cbLandsatLook">
          <property name="text">
           <string>LandsatLook</string>
          </property>
         </widget>
        </item>
-       <item row="1" column="0">
-        <widget class="QCheckBox" name="cbCopernicus">
-         <property name="text">
-          <string>Copernicus</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="4">
+       <item row="1" column="5">
         <widget class="QPushButton" name="pushButton_2">
          <property name="enabled">
           <bool>true</bool>
@@ -426,12 +415,66 @@
           <string/>
          </property>
          <property name="icon">
-          <iconset>
+          <iconset resource="resources.qrc">
            <normaloff>:/icons/icons/sliders-solid.svg</normaloff>:/icons/icons/sliders-solid.svg</iconset>
          </property>
         </widget>
        </item>
        <item row="0" column="6">
+        <spacer name="horizontalSpacer_4">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="0" column="1">
+        <widget class="QPushButton" name="pb_options_sh">
+         <property name="maximumSize">
+          <size>
+           <width>31</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="resources.qrc">
+           <normaloff>:/icons/icons/sliders-solid.svg</normaloff>:/icons/icons/sliders-solid.svg</iconset>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="8">
+        <widget class="QPushButton" name="pb_options_es">
+         <property name="maximumSize">
+          <size>
+           <width>31</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="resources.qrc">
+           <normaloff>:/icons/icons/sliders-solid.svg</normaloff>:/icons/icons/sliders-solid.svg</iconset>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QCheckBox" name="cbCopernicus">
+         <property name="text">
+          <string>Copernicus</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="7">
         <widget class="QCheckBox" name="cbEarthSearch">
          <property name="maximumSize">
           <size>
@@ -444,8 +487,8 @@
          </property>
         </widget>
        </item>
-       <item row="1" column="1">
-        <widget class="QPushButton" name="pushButton_5">
+       <item row="0" column="2">
+        <widget class="QPushButton" name="pushButton">
          <property name="maximumSize">
           <size>
            <width>31</width>
@@ -456,36 +499,10 @@
           <string/>
          </property>
          <property name="icon">
-          <iconset>
-           <normaloff>:/icons/icons/sliders-solid.svg</normaloff>:/icons/icons/sliders-solid.svg</iconset>
+          <iconset resource="resources.qrc">
+           <normaloff>:/icons/icons/login.svg</normaloff>:/icons/icons/login.svg</iconset>
          </property>
         </widget>
-       </item>
-       <item row="0" column="0">
-        <widget class="QCheckBox" name="cbSentinelHub">
-         <property name="maximumSize">
-          <size>
-           <width>90</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>Sentinel Hub</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="5">
-        <spacer name="horizontalSpacer_4">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
        </item>
       </layout>
      </widget>

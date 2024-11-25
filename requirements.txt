@@ -4,3 +4,7 @@ numpy~=2.1.2
 rasterio~=1.4.1
 planetary-computer~=1.0.0
 matplotlib~=3.9.2
+
+requests~=2.32.3
+rioxarray~=0.18.1
+stackstac~=0.5.1

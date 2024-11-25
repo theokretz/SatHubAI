@@ -44,21 +44,6 @@ class SentinelHubRequester(Requester):
         self.collection_mapping = {
             "Sentinel-2 L1C": DataCollection.SENTINEL2_L1C,
             "Sentinel-2 L2A": DataCollection.SENTINEL2_L2A,
-            "Sentinel-1": DataCollection.SENTINEL1,
-            "Sentinel-1 IW": DataCollection.SENTINEL1_IW,
-            "Sentinel-1 IW ASC": DataCollection.SENTINEL1_IW_ASC,
-            "Sentinel-1 IW DES": DataCollection.SENTINEL1_IW_DES,
-            "Sentinel-1 EW": DataCollection.SENTINEL1_EW,
-            "Sentinel-1 EW ASC": DataCollection.SENTINEL1_EW_ASC,
-            "Sentinel-1 EW DES": DataCollection.SENTINEL1_EW_DES,
-            "Sentinel-1 EW SH": DataCollection.SENTINEL1_EW_SH,
-            "Sentinel-1 EW SH ASC": DataCollection.SENTINEL1_EW_SH_ASC,
-            "Sentinel-1 EW SH DES": DataCollection.SENTINEL1_EW_SH_DES,
-            "DEM": DataCollection.DEM,
-            "DEM Mapzen": DataCollection.DEM_MAPZEN,
-            "DEM Copernicus 30": DataCollection.DEM_COPERNICUS_30,
-            "DEM Copernicus 90": DataCollection.DEM_COPERNICUS_90,
-            "MODIS": DataCollection.MODIS,
             "Landsat 1-5 MSS L1": DataCollection.LANDSAT_MSS_L1,
             "Landsat 4-5 TM L1": DataCollection.LANDSAT_TM_L1,
             "Landsat 4-5 TM L2": DataCollection.LANDSAT_TM_L2,
@@ -66,9 +51,6 @@ class SentinelHubRequester(Requester):
             "Landsat 7 ETM L2": DataCollection.LANDSAT_ETM_L2,
             "Landsat 8-9 OLI/TIRS L1": DataCollection.LANDSAT_OT_L1,
             "Landsat 8-9 OLI/TIRS L2": DataCollection.LANDSAT_OT_L2,
-            "Sentinel-5P": DataCollection.SENTINEL5P,
-            "Sentinel-3 OLCI": DataCollection.SENTINEL3_OLCI,
-            "Sentinel-3 SLSTR": DataCollection.SENTINEL3_SLSTR,
         }
 
     @staticmethod

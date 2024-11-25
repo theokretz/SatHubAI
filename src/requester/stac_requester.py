@@ -7,11 +7,15 @@ from rasterio.enums import Resampling
 import numpy as np
 import os
 import uuid
+import rioxarray
+import stackstac
+from rasterio.plot import show
 
 from ..exceptions.ndvi_calculation_exception import NDVICalculationError
 from .requester import Requester
 from .stac_service import StacService
-from ..utils import import_into_qgis
+from ..utils import import_into_qgis, display_warning_message
+
 
 class StacRequester(Requester):
     def __init__(self, config, provider):
@@ -98,6 +102,10 @@ class StacRequester(Requester):
     def request_data(self):
         catalog = StacService.get_client(self.provider)
 
+        collections = catalog.get_collections()
+        for collection in collections:
+            print(collection.id)
+
         # get min and max coordinates
         min_lon = min(self.config.coords[0].x(), self.config.coords[1].x())
         max_lon = max(self.config.coords[0].x(), self.config.coords[1].x())
@@ -110,25 +118,52 @@ class StacRequester(Requester):
         else:
             collection = "sentinel-2-l1c"
 
-        search = catalog.search(
-            collections=collection,
-            bbox=bbox,
-            datetime=f"{self.config.start_date}/{self.config.end_date}",
-            query={
-                # filter for minimal cloudiness
-                "eo:cloud_cover": {"lt": 10},
-                # fix -> filter for minimal no data areas
-                "s2:nodata_pixel_percentage": {"lt": 1},
-            },
-        )
+        # Prepare search parameters
+        search_params = {
+            "collections": collection,
+            "bbox": bbox,
+            "datetime": f"{self.config.start_date}/{self.config.end_date}",
+        }
 
+        # add query parameter only if supported - only supported in sentinel-2-l2a collection
+        if collection == "sentinel-2-l2a":
+            search_params["query"] = {
+                "eo:cloud_cover": {"lt": 10},
+                "s2:nodata_pixel_percentage": {"lt": 1},
+            }
+
+
+        search = catalog.search(**search_params)
         items = search.item_collection()
+        print("Collection size: ", len(items))
+
+        if not items:
+            display_warning_message("Change your options.", "No satellite data found!")
+            return
 
         # select item with the lowest cloudiness -> problem: often selects image with no data areas
         selected_item = min(items, key=lambda item: item.properties["eo:cloud_cover"])
+        print(selected_item.assets)
         asset_url = selected_item.assets["visual"].href
+        print(asset_url)
 
-        self.plot_image(asset_url)
+        if collection == "sentinel-2-l1c":
+            os.environ["AWS_REQUEST_PAYER"] = "requester"
+            os.environ["AWS_PROFILE"] = "default"
+            data_array = stackstac.stack(items=selected_item, dtype="float64", resolution=10, rescale=False)
+
+            da_l1c = data_array.sel(band=["red", "green", "blue"]).squeeze()
+            da_l1c.astype("int").plot.imshow(rgb="band", robust=True)
+            plt.xlabel("")
+            plt.ylabel("")
+            plt.title("Sentinel-2 L1C")
+            plt.show()
+
+            output_path = "output_l1c.tif"
+            da_l1c.rio.to_raster(output_path)
+            import_into_qgis(output_path, "Sentinel-2 L1C")
+        else:
+            self.plot_image(asset_url)
 
         if self.config.import_checked:
             import_into_qgis(asset_url, self.provider.qgis_layer_name)
@@ -136,5 +171,5 @@ class StacRequester(Requester):
         if self.config.download_checked:
             self.save_image(asset_url)
 
-        if self.config.additional_options.ndvi_checked:
+        if self.config.additional_options and self.config.additional_options.ndvi_checked.isChecked():
            self.ndvi_calculation(selected_item)
