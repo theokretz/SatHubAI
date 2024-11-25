@@ -5,7 +5,7 @@ This PyQGIS plugin was developed as part of my bachelor's thesis.
 ## Current Features
 
 - Lets the User select an area on the map
-- Returns a True Color Image of the selected area for a specific time frame using data from Sentinel Hub/Planetary Computer/Earth Search/Copernicus and/or LandsatLook
+- Returns a True Color Image of the selected area for a specific time frame using data from Sentinel Hub/Planetary Computer/Earth Search
 - Downloads the True Color Image in preferred file format and preferred directory
 - Calculates NDVI
 
