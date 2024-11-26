@@ -10,6 +10,7 @@ import uuid
 import rioxarray
 import stackstac
 from rasterio.plot import show
+from osgeo import gdal
 
 from ..exceptions.ndvi_calculation_exception import NDVICalculationError
 from .requester import Requester
@@ -99,6 +100,40 @@ class StacRequester(Requester):
                 plt.savefig(ndvi_path, bbox_inches='tight', pad_inches=0, dpi=300)
 
 
+    def process_sentinel_2_l1c(self, selected_item):
+        os.environ["AWS_REQUEST_PAYER"] = "requester"
+        os.environ["AWS_PROFILE"] = "default"
+        data_array = stackstac.stack(items=selected_item, dtype="float64", resolution=10, rescale=False)
+
+        da_l1c = data_array.sel(band=["red", "green", "blue"]).squeeze()
+
+        da_l1c.astype("int").plot.imshow(rgb="band", robust=True)
+        plt.xlabel("")
+        plt.ylabel("")
+        plt.title("Sentinel-2 L1C")
+        plt.show()
+
+        if self.config.download_checked:
+            file_path = self.get_unique_filename(self.config.download_directory, self.provider.filename,
+                                                 self.config.selected_file_type)
+            da_l1c.rio.to_raster(file_path)
+
+        if self.config.import_checked:
+            import tempfile
+            with tempfile.NamedTemporaryFile(suffix=".tif", delete=False) as temp_file:
+                temp_path = temp_file.name
+                da_l1c.rio.to_raster(temp_path, driver="GTiff", crs="EPSG:32633")
+                import_into_qgis(temp_path, "Sentinel-2 L1C Earth Search")
+
+    @staticmethod
+    def calculate_bbox(coords):
+        # get min and max coordinates
+        min_lon = min(coords[0].x(), coords[1].x())
+        max_lon = max(coords[0].x(), coords[1].x())
+        min_lat = min(coords[0].y(), coords[1].y())
+        max_lat = max(coords[0].y(), coords[1].y())
+        return min_lon, min_lat, max_lon, max_lat
+
     def request_data(self):
         catalog = StacService.get_client(self.provider)
 
@@ -106,12 +141,7 @@ class StacRequester(Requester):
         for collection in collections:
             print(collection.id)
 
-        # get min and max coordinates
-        min_lon = min(self.config.coords[0].x(), self.config.coords[1].x())
-        max_lon = max(self.config.coords[0].x(), self.config.coords[1].x())
-        min_lat = min(self.config.coords[0].y(), self.config.coords[1].y())
-        max_lat = max(self.config.coords[0].y(), self.config.coords[1].y())
-        bbox = (min_lon, min_lat, max_lon, max_lat)
+        bbox = self.calculate_bbox(self.config.coords)
 
         if self.config.additional_options:
             collection =  self.collection_mapping.get(self.config.additional_options.collection)
@@ -148,28 +178,15 @@ class StacRequester(Requester):
         print(asset_url)
 
         if collection == "sentinel-2-l1c":
-            os.environ["AWS_REQUEST_PAYER"] = "requester"
-            os.environ["AWS_PROFILE"] = "default"
-            data_array = stackstac.stack(items=selected_item, dtype="float64", resolution=10, rescale=False)
-
-            da_l1c = data_array.sel(band=["red", "green", "blue"]).squeeze()
-            da_l1c.astype("int").plot.imshow(rgb="band", robust=True)
-            plt.xlabel("")
-            plt.ylabel("")
-            plt.title("Sentinel-2 L1C")
-            plt.show()
-
-            output_path = "output_l1c.tif"
-            da_l1c.rio.to_raster(output_path)
-            import_into_qgis(output_path, "Sentinel-2 L1C")
+            self.process_sentinel_2_l1c(selected_item)
         else:
             self.plot_image(asset_url)
 
-        if self.config.import_checked:
-            import_into_qgis(asset_url, self.provider.qgis_layer_name)
+            if self.config.import_checked:
+                    import_into_qgis(asset_url, self.provider.qgis_layer_name)
 
-        if self.config.download_checked:
-            self.save_image(asset_url)
+            if self.config.download_checked:
+                self.save_image(asset_url)
 
-        if self.config.additional_options and self.config.additional_options.ndvi_checked.isChecked():
-           self.ndvi_calculation(selected_item)
+            if self.config.additional_options and self.config.additional_options.ndvi_checked.isChecked():
+               self.ndvi_calculation(selected_item)
