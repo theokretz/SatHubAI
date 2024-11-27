@@ -113,7 +113,6 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
         download_checked = self.cbDownload.isChecked()
         selected_file_type = self.comboboxFileType.currentText()
         import_checked = self.cb_import.isChecked()
-        ndvi_checked = self.cb_ndvi.isChecked()
 
         # checkboxes provider
         sentinel_checked = self.cbSentinelHub.isChecked()

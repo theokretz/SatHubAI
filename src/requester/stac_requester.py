@@ -27,6 +27,8 @@ class StacRequester(Requester):
         self.collection_mapping = {
             "Sentinel-2 L1C": "sentinel-2-l1c" ,
             "Sentinel-2 L2A": "sentinel-2-l2a",
+            "Landsat Collection 2 Level 1": "landsat-c2-l1",
+            "Landsat Collection 2 Level 2": "landsat-c2-l2",
         }
 
     def plot_image(self, asset_url, scale_factor=0.1):
@@ -108,14 +110,11 @@ class StacRequester(Requester):
         da_l1c = data_array.sel(band=["red", "green", "blue"]).squeeze()
 
         da_l1c.astype("int").plot.imshow(rgb="band", robust=True)
-        plt.xlabel("")
-        plt.ylabel("")
-        plt.title("Sentinel-2 L1C")
+        plt.title("Sentinel-2 L1C Earth Search")
         plt.show()
 
         if self.config.download_checked:
-            file_path = self.get_unique_filename(self.config.download_directory, self.provider.filename,
-                                                 self.config.selected_file_type)
+            file_path = self.get_unique_filename(self.config.download_directory, self.provider.filename, self.config.selected_file_type)
             da_l1c.rio.to_raster(file_path)
 
         if self.config.import_checked:
@@ -124,6 +123,9 @@ class StacRequester(Requester):
                 temp_path = temp_file.name
                 da_l1c.rio.to_raster(temp_path, driver="GTiff", crs="EPSG:32633")
                 import_into_qgis(temp_path, "Sentinel-2 L1C Earth Search")
+
+        if self.config.additional_options and self.config.additional_options.ndvi_checked.isChecked():
+               self.ndvi_calculation(selected_item)
 
     @staticmethod
     def calculate_bbox(coords):
