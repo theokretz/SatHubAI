@@ -33,7 +33,17 @@ class SentinelHubRequester(Requester):
         if not self.sh_config.sh_client_id or not self.sh_config.sh_client_secret:
             raise MissingCredentialsException("Error! To use Process API, please provide the credentials (OAuth client ID and client secret).")
 
-        self.resolution = 60
+        self.resolution_mapping = {
+             DataCollection.SENTINEL2_L1C : 10,
+             DataCollection.SENTINEL2_L2A : 10,
+             DataCollection.LANDSAT_MSS_L1 : 60,
+             DataCollection.LANDSAT_TM_L1 : 30,
+             DataCollection.LANDSAT_TM_L2 : 30,
+             DataCollection.LANDSAT_ETM_L1 : 30,
+             DataCollection.LANDSAT_ETM_L2 : 30,
+             DataCollection.LANDSAT_OT_L1 : 30,
+             DataCollection.LANDSAT_OT_L2 : 30,
+        }
 
         self.mime_type_mapping = {
             "TIFF": MimeType.TIFF,
@@ -47,8 +57,8 @@ class SentinelHubRequester(Requester):
             "Landsat 1-5 MSS L1": DataCollection.LANDSAT_MSS_L1,
             "Landsat 4-5 TM L1": DataCollection.LANDSAT_TM_L1,
             "Landsat 4-5 TM L2": DataCollection.LANDSAT_TM_L2,
-            "Landsat 7 ETM L1": DataCollection.LANDSAT_ETM_L1,
-            "Landsat 7 ETM L2": DataCollection.LANDSAT_ETM_L2,
+            "Landsat 7 ETM+ L1": DataCollection.LANDSAT_ETM_L1,
+            "Landsat 7 ETM+ L2": DataCollection.LANDSAT_ETM_L2,
             "Landsat 8-9 OLI/TIRS L1": DataCollection.LANDSAT_OT_L1,
             "Landsat 8-9 OLI/TIRS L2": DataCollection.LANDSAT_OT_L2,
         }
@@ -89,42 +99,70 @@ class SentinelHubRequester(Requester):
 
             import_into_qgis(tmp_file.name, "Sentinel Hub Layer")
 
+    @staticmethod
+    def get_evalscript_for_collection(collection):
+        """generates an evalscript based on the satellite data collection."""
+
+        collection_name = collection.api_id
+        print(collection_name)
+
+        if "sentinel-2" in collection_name:
+            return """
+            //VERSION=3
+            function setup(){
+              return{
+                input: ["B02", "B03", "B04"], 
+                output: {bands: 3}
+              }
+            }
+            
+            function evaluatePixel(sample){
+              return [sample.B04 * 2.5, sample.B03 * 2.5, sample.B02 * 2.5];
+            }
+            """
+        elif "landsat" in collection_name:
+            return """
+                //VERSION=3
+                function setup() {
+                    return {
+                        input: [{ 
+                            bands: ["B01", "B02", "B03"] 
+                        }],
+                        output: { 
+                            bands: 3 
+                        }
+                    };
+                }
+                function evaluatePixel(sample) {
+                    return [sample.B03 * 2.5, sample.B02 * 2.5, sample.B01 * 2.5];
+                }
+            """
+        else:
+            raise ValueError(f"Unsupported collection: {collection}")
+
     def request_data(self):
         """request true color image from Sentinel Hub, without clouds if time frame is at least a month"""
         # get selected file type, default is TIFF
         mime_type = self.mime_type_mapping.get(self.config.selected_file_type, MimeType.TIFF)
 
-        # coords
-        coords = (
-        self.config.coords[0].x(), self.config.coords[0].y(), self.config.coords[1].x(), self.config.coords[1].y())
-        bbox = BBox(bbox=coords, crs=CRS.WGS84)
-        size = bbox_to_dimensions(bbox, resolution=self.resolution)
-
+        # collection
         if self.config.additional_options:
             collection = self.collection_mapping.get(self.config.additional_options.collection)
         else:
             # default collection
             collection = DataCollection.SENTINEL2_L1C
 
+        # evalscript
+        evalscript_true_color = self.get_evalscript_for_collection(collection)
 
-        evalscript_true_color = """
-            //VERSION=3
-    
-            function setup() {
-                return {
-                    input: [{
-                        bands: ["B02", "B03", "B04"]
-                    }],
-                    output: {
-                        bands: 3
-                    }
-                };
-            }
-    
-            function evaluatePixel(sample) {
-                return [2.5 * sample.B04, 2.5 * sample.B03, 2.5 * sample.B02];
-            }
-        """
+        # resolution
+        resolution = self.resolution_mapping.get(collection)
+
+        # coords
+        coords = (
+        self.config.coords[0].x(), self.config.coords[0].y(), self.config.coords[1].x(), self.config.coords[1].y())
+        bbox = BBox(bbox=coords, crs=CRS.WGS84)
+        size = bbox_to_dimensions(bbox, resolution=resolution)
 
         request_true_color = SentinelHubRequest(
             data_folder=self.config.download_directory,

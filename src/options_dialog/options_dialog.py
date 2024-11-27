@@ -13,12 +13,12 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'options_
 class OptionsDialog(QDialog, FORM_CLASS):
     icon_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../icons/login.svg"))
     collections_list = {
-        "SENTINEL_HUB":["Sentinel-2 L1C", "Sentinel-2 L2A", "Landsat 1-5 MSS L1"],
-        "PLANETARY_COMPUTER":["Sentinel-2 L2A", "Landsat Collection 2 Level 1", "Landsat Collection 2 Level 2"],
+        "SENTINEL_HUB":["Sentinel-2 L1C", "Sentinel-2 L2A", "Landsat 1-5 MSS L1", "Landsat 4-5 TM L1", "Landsat 4-5 TM L2", "Landsat 7 ETM+ L1", "Landsat 7 ETM+ L2", "Landsat 8-9 OLI/TIRS L1", "Landsat 8-9 OLI/TIRS L2"],
+        "PLANETARY_COMPUTER":["Sentinel-2 L2A", "Landsat 2 L1", "Landsat 2 L2"],
         "EARTH_SEARCH": [
             "Sentinel-2 L2A",
             (QIcon(icon_path), "Sentinel-2 L1C"),
-            "Landsat Collection 2 Level 2"
+            "Landsat 2 L2"
         ],
     }
     options = pyqtSignal(OptionsConfig)
