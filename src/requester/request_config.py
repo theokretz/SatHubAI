@@ -1,5 +1,5 @@
 class RequestConfig:
-    def __init__(self, coords, start_date, end_date, download_checked, selected_file_type, download_directory, import_checked, additional_options):
+    def __init__(self, coords, start_date, end_date, download_checked, selected_file_type, download_directory, import_checked, plot_checked, additional_options):
         self._coords = coords
         self._start_date = start_date
         self._end_date = end_date
@@ -7,6 +7,7 @@ class RequestConfig:
         self._selected_file_type = selected_file_type
         self._download_directory = download_directory
         self._import_checked = import_checked
+        self._plot_checked = plot_checked
         self._additional_options = additional_options
 
     @property
@@ -36,6 +37,10 @@ class RequestConfig:
     @property
     def import_checked(self):
         return self._import_checked
+
+    @property
+    def plot_checked(self):
+        return self._plot_checked
 
     @property
     def additional_options(self):

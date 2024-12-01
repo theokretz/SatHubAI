@@ -24,8 +24,6 @@
 
 import os
 
-from .src.requester.landsatlook_requester import LandsatLookRequester
-from .src.requester.copernicus_requester import CopernicusRequester
 from .src.requester.stac_requester import StacRequester
 from .src.options_dialog.options_dialog import OptionsDialog
 from .src.requester.request_config import RequestConfig
@@ -92,7 +90,7 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
 
 
     def open_options_dialog(self, provider):
-        """Opens the options dialog for satellite providers"""
+        """opens the options dialog for satellite providers"""
         self.options_dialog = OptionsDialog(parent=self, provider=provider)
 
         # connect options emit signal to function
@@ -101,6 +99,7 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
         self.options_dialog.exec_()
 
     def handle_additional_options(self, options_config):
+        """handles the additional options set in the options dialog"""
         self.additional_options = options_config
 
     def on_fw_get_directory_clicked(self):
@@ -113,13 +112,12 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
         download_checked = self.cbDownload.isChecked()
         selected_file_type = self.comboboxFileType.currentText()
         import_checked = self.cb_import.isChecked()
+        plot_checked = self.cb_plot_image.isChecked()
 
         # checkboxes provider
         sentinel_checked = self.cbSentinelHub.isChecked()
         planetary_checked = self.cbPlanetaryComputer.isChecked()
         earth_search_checked = self.cbEarthSearch.isChecked()
-        copernicus_checked = self.cbCopernicus.isChecked()
-        landsatlook_checked = self.cbLandsatLook.isChecked()
 
 
         config = RequestConfig(
@@ -130,6 +128,7 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
             selected_file_type,
             self.download_directory,
             import_checked,
+            plot_checked,
             self.additional_options
         )
 
@@ -146,7 +145,7 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
             display_warning_message('Please select download directory.', 'No Directory selected!')
             return
 
-        if not sentinel_checked and not planetary_checked and not earth_search_checked and not copernicus_checked and not landsatlook_checked:
+        if not sentinel_checked and not planetary_checked and not earth_search_checked:
             display_warning_message("Please select a satellite provider.","No Satellite Provider selected!")
             return
 
@@ -163,15 +162,6 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
         # earth search
         if earth_search_checked:
             requester = StacRequester(config, StacService.Provider.EARTH_SEARCH)
-            requester.execute_request()
-
-        # copernicus
-        if copernicus_checked:
-            requester = CopernicusRequester(config)
-            requester.execute_request()
-
-        if landsatlook_checked:
-            requester = LandsatLookRequester(config)
             requester.execute_request()
 
 
@@ -233,4 +223,3 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
 
         # updates UI with coordinates
         self.label_coordinates.setText(f"{top_left.x()}, {top_left.y()} \n{bottom_right.x()}, {bottom_right.y()}")
-

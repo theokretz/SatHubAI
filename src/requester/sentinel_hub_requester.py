@@ -93,7 +93,6 @@ class SentinelHubRequester(Requester):
                     transform=from_bounds(lower_left[0], lower_left[1], upper_right[0], upper_right[1],
                     width=size[0],
                     height=size[1]),
-                    crs="EPSG:4326"
             ) as tmp_dataset:
                 tmp_dataset.write(image.transpose(2, 0, 1))
 

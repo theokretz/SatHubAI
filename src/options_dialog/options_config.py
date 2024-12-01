@@ -1,8 +1,9 @@
 class OptionsConfig:
-    def __init__(self, provider, collection, ndvi_checked):
+    def __init__(self, provider, collection, ndvi_checked, bands):
         self._provider = provider
         self._collection = collection
         self._ndvi_checked = ndvi_checked
+        self._bands = bands
 
 
     @property
@@ -12,3 +13,7 @@ class OptionsConfig:
     @property
     def ndvi_checked(self):
         return self._ndvi_checked
+
+    @property
+    def bands(self):
+        return self._bands
