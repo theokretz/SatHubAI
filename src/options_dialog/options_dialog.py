@@ -28,6 +28,12 @@ class OptionsDialog(QDialog, FORM_CLASS):
         "Sentinel-2 L1C" : ["True Color", "False Color", "Red", "Green", "Blue", "Near Infrared"],
         "Landsat Collection 2 L1" : ["False Color", "Red", "Green", "Near Infrared"],
         "Landsat Collection 2 L2" : ["True Color", "False Color", "Red", "Green", "Blue" , "Near Infrared"],
+        "Landsat 1-5 MSS L1" : ["False Color", "Red", "Green", "Near Infrared"],
+        "Landsat 4-5 TM L1" : ["True Color", "False Color", "Red", "Green", "Blue", "Near Infrared"],
+        "Landsat 7 ETM+ L1": ["True Color", "False Color", "Red", "Green", "Blue", "Near Infrared"],
+        "Landsat 7 ETM+ L2": ["True Color", "False Color", "Red", "Green", "Blue", "Near Infrared"],
+        "Landsat 8-9 OLI/TIRS L1": ["True Color", "False Color", "Red", "Green", "Blue", "Near Infrared"],
+        "Landsat 8-9 OLI/TIRS L2": ["True Color", "False Color", "Red", "Green", "Blue", "Near Infrared"],
     }
 
     options = pyqtSignal(OptionsConfig)

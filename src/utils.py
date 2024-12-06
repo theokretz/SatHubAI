@@ -1,7 +1,7 @@
 # utils.py
 from PyQt5.QtWidgets import QMessageBox
-from qgis._core import QgsProject, QgsMessageLog, Qgis
-from qgis.core import QgsRasterLayer
+from qgis._core import QgsProject, QgsMessageLog, Qgis, QgsRasterLayer
+
 
 def display_error_message(error_message, error_title="An Error Occurred"):
     """display error message"""
