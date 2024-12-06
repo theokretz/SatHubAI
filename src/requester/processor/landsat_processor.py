@@ -177,5 +177,5 @@ class LandsatProcessor(Processor):
                         import_into_qgis(filepath, self._provider.qgis_layer_name + " " + self._collection + "-" + band)
 
         # ndvi
-        if self._config.additional_options and self._config.additional_options.ndvi_checked.isChecked():
+        if self._config.additional_options and self._config.additional_options.ndvi_checked:
             self.ndvi_calculation(selected_item)

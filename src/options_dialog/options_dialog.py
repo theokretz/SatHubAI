@@ -78,7 +78,7 @@ class OptionsDialog(QDialog, FORM_CLASS):
     def on_pb_submit_clicked(self):
         checked_bands = [self.checkcbBands.itemText(i) for i in range(self.checkcbBands.count())
                          if self.checkcbBands.itemCheckState(i) == Qt.Checked]
-        selected_options = OptionsConfig(self._provider, self.comboboxCollection.currentText(), self.cb_ndvi, checked_bands)
+        selected_options = OptionsConfig(self._provider, self.comboboxCollection.currentText(), self.cb_ndvi.isChecked(), checked_bands)
         self.options.emit(selected_options)
         self.close()
 

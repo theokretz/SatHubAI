@@ -57,12 +57,12 @@ class SentinelProcessor(Processor):
                 self.plot_image_single_band(asset_url, band)
 
             if self._config.import_checked:
-                import_into_qgis(asset_url, self._provider.qgis_layer_name)
+                import_into_qgis(asset_url, f"{self._provider.qgis_layer_name} {self._collection} - {band} ")
 
             if self._config.download_checked:
                 self.save_image(asset_url, band)
 
-        if self._config.additional_options and self._config.additional_options.ndvi_checked.isChecked():
+        if self._config.additional_options and self._config.additional_options.ndvi_checked:
             self.ndvi_calculation(selected_item)
 
     def save_and_import_sentinel_2_l1c(self, data, band):
@@ -128,5 +128,5 @@ class SentinelProcessor(Processor):
 
                 self.save_and_import_sentinel_2_l1c(band_da, band)
 
-        if self._config.additional_options and self._config.additional_options.ndvi_checked.isChecked():
+        if self._config.additional_options and self._config.additional_options.ndvi_checked:
             self.ndvi_calculation(selected_item)

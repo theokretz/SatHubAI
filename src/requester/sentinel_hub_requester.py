@@ -71,7 +71,8 @@ class SentinelHubRequester(Requester):
                 "Red": ["B04"],
                 "Green": ["B03"],
                 "Blue": ["B02"],
-                "Near Infrared": ["B08"]
+                "Near Infrared": ["B08"],
+                "NDVI":["B04", "B08"]
             },
             "Sentinel-2 L2A": {
                 "True Color": ["B04", "B03", "B02"],  # RGB
@@ -79,13 +80,15 @@ class SentinelHubRequester(Requester):
                 "Red": ["B04"],
                 "Green": ["B03"],
                 "Blue": ["B02"],
-                "Near Infrared": ["B08"]
+                "Near Infrared": ["B08"],
+                "NDVI": ["B04", "B08"]
             },
             "Landsat 1-5 MSS L1": {
                 "False Color": ["B04", "B02", "B01"],  # NIR, Red, Green
                 "Red": ["B02"],
                 "Green": ["B01"],
-                "Near Infrared": ["B04"]
+                "Near Infrared": ["B04"],
+                "NDVI": ["B02", "B04"]
             },
             "Landsat 4-5 TM L1": {
                 "True Color": ["B03", "B02", "B01"],  # RGB
@@ -93,7 +96,8 @@ class SentinelHubRequester(Requester):
                 "Red": ["B03"],
                 "Green": ["B02"],
                 "Blue": ["B01"],
-                "Near Infrared": ["B04"]
+                "Near Infrared": ["B04"],
+                "NDVI": ["B03", "B04"]
             },
             "Landsat 4-5 TM L2": {
                 "True Color": ["B03", "B02", "B01"],  # RGB
@@ -101,7 +105,8 @@ class SentinelHubRequester(Requester):
                 "Red": ["B03"],
                 "Green": ["B02"],
                 "Blue": ["B01"],
-                "Near Infrared": ["B04"]
+                "Near Infrared": ["B04"],
+                "NDVI": ["B03", "B04"]
             },
             "Landsat 7 ETM+ L1": {
                 "True Color": ["B03", "B02", "B01"],  # RGB
@@ -109,7 +114,8 @@ class SentinelHubRequester(Requester):
                 "Red": ["B03"],
                 "Green": ["B02"],
                 "Blue": ["B01"],
-                "Near Infrared": ["B04"]
+                "Near Infrared": ["B04"],
+                "NDVI": ["B03", "B04"]
             },
             "Landsat 7 ETM+ L2": {
                 "True Color": ["B03", "B02", "B01"],  # RGB
@@ -117,7 +123,8 @@ class SentinelHubRequester(Requester):
                 "Red": ["B03"],
                 "Green": ["B02"],
                 "Blue": ["B01"],
-                "Near Infrared": ["B04"]
+                "Near Infrared": ["B04"],
+                "NDVI": ["B03", "B04"]
             },
             "Landsat 8-9 OLI/TIRS L1": {
                 "True Color": ["B04", "B03", "B02"],  # RGB
@@ -125,7 +132,8 @@ class SentinelHubRequester(Requester):
                 "Red": ["B04"],
                 "Green": ["B03"],
                 "Blue": ["B02"],
-                "Near Infrared": ["B05"]
+                "Near Infrared": ["B05"],
+                "NDVI": ["B04", "B05"]
             },
             "Landsat 8-9 OLI/TIRS L2": {
                 "True Color": ["B04", "B03", "B02"],  # RGB
@@ -133,14 +141,19 @@ class SentinelHubRequester(Requester):
                 "Red": ["B04"],
                 "Green": ["B03"],
                 "Blue": ["B02"],
-                "Near Infrared": ["B05"]
+                "Near Infrared": ["B05"],
+                "NDVI": ["B04", "B05"]
             }
         }
 
     @staticmethod
     def plot_image(image, title, band_name):
         plt.figure()
-        plt.imshow(image, cmap="gray")
+        if band_name == "NDVI":
+            plt.imshow(image, cmap="RdYlGn")
+            plt.colorbar()
+        else:
+            plt.imshow(image, cmap="gray")
         plt.title(title)
         plt.axis('off')
         plt.show()
@@ -181,9 +194,12 @@ class SentinelHubRequester(Requester):
         input_bands = set()
         outputs = []
         evaluations = []
-        count = 0
 
-        # first band needs the default identifier
+        count = 0
+        if self.config.additional_options and self.config.additional_options.ndvi_checked and not "NDVI" in bands:
+            bands.append("NDVI")
+
+
         for band_name in bands:
             sentinel_bands = self.band_mapping[collection_name][band_name]
             if sentinel_bands is None:
@@ -192,6 +208,7 @@ class SentinelHubRequester(Requester):
             input_bands.update(sentinel_bands)
 
             if len(sentinel_bands) == 3:  # True Color or False Color
+                # first band needs the default identifier
                 if count == 0:
                     outputs.append(f"""
                        {{
@@ -212,13 +229,13 @@ class SentinelHubRequester(Requester):
                        """)
                     evaluations.append(
                         f'"{band_name.lower().replace(" ", "_")}": [samples.{sentinel_bands[0]} * 2.5, samples.{sentinel_bands[1]} * 2.5, samples.{sentinel_bands[2]} * 2.5]')
-            elif len(sentinel_bands) == 1:  # Single-band outputs
+            elif len(sentinel_bands) == 1 or band_name == "NDVI":  # single band outputs or ndvi
                 if count == 0:
                     outputs.append(f"""
                        {{
                            id: "default",
                            bands: 1,
-                           sampleType: "AUTO"
+                           sampleType: "AUTO",
                        }}
                        """)
                     evaluations.append(f'"default": [samples.{sentinel_bands[0]}]')
@@ -227,10 +244,13 @@ class SentinelHubRequester(Requester):
                        {{
                            id: "{band_name.lower().replace(' ', '_')}",
                            bands: 1,
-                           sampleType: "AUTO"
+                           sampleType: "FLOAT32" 
                        }}
                        """)
-                    evaluations.append(f'"{band_name.lower().replace(" ", "_")}": [samples.{sentinel_bands[0]}]')
+                    if band_name == "NDVI":
+                        evaluations.append(f'"{band_name.lower()}":[(samples.{sentinel_bands[1]} - samples.{sentinel_bands[0]}) / (samples.{sentinel_bands[1]} + samples.{sentinel_bands[0]})]')
+                    else:
+                        evaluations.append(f'"{band_name.lower().replace(" ", "_")}": [samples.{sentinel_bands[0]}]')
             count += 1
 
         # generate evalscript
@@ -297,13 +317,22 @@ class SentinelHubRequester(Requester):
 
         # bands - default is True Color
         if self.config.additional_options:
-            bands = self.config.additional_options.bands
+            # if nothing is selected, select default
+            if len(self.config.additional_options.bands) == 0:
+                if collection_name == "Landsat 1-5 MSS L1":
+                    bands = ["False Color"]
+                else:
+                    bands = ["True Color"]
+            else:
+                bands = self.config.additional_options.bands
         else:
-            bands = ["True Color"]
+            if collection_name == "Landsat 1-5 MSS L1":
+                bands = ["False Color"]
+            else:
+                bands = ["True Color"]
 
         # evalscript
         evalscript = self.generate_evalscript(bands, collection_name)
-
         responses = self.generate_responses(bands, mime_type, collection_name)
 
         # resolution
@@ -351,7 +380,9 @@ class SentinelHubRequester(Requester):
             if self.config.import_checked and not self.config.download_checked:
                 self.import_into_qgis_without_download(image, size, bbox, f"Sentinel Hub {collection_name} - {band_name}")
 
-            self.plot_image(image, f"Sentinel Hub {collection_name} - {band_name}", band_name)
+            if self.config.plot_checked:
+                self.plot_image(image, f"Sentinel Hub {collection_name} - {band_name}", band_name)
+
             count += 1
 
 
