@@ -53,6 +53,42 @@ class Processor(ABC):
             with rasterio.open(file_path, 'w', **profile) as dst:
                 dst.write(image)
 
+    @staticmethod
+    def normalize(array):
+        return (array -  array.min()) / (array.max() - array.min())
+
+    @staticmethod
+    def create_valid_mask(red, green, blue, no_data_value=0):
+        return (red != no_data_value) & (green != no_data_value) & (blue != no_data_value)
+
+    @staticmethod
+    def add_alpha_channel(true_color, valid_mask):
+        """creates and adds alpha channel to the true color image, alpha channel is used to indicate transparency"""
+        true_color_8bit = (true_color * 255).astype('uint8')
+
+        alpha = np.where(valid_mask, 255, 0).astype('uint8')
+
+        true_color_with_alpha = np.dstack((true_color_8bit, alpha))
+        return true_color_with_alpha
+
+    def true_false_color_calculation(self, red_url, green_url, blue_url, alpha_mask=False):
+        with rasterio.open(red_url) as red_src, rasterio.open(green_url) as green_src, rasterio.open(blue_url) as blue_src:
+            red = red_src.read(1).astype('float32')
+            green = green_src.read(1).astype('float32')
+            blue = blue_src.read(1).astype('float32')
+
+            red_norm = self.normalize(red)
+            green_norm = self.normalize(green)
+            blue_norm = self.normalize(blue)
+
+            if not alpha_mask:
+                return np.dstack((red_norm, green_norm, blue_norm))
+            else:
+                true_color = np.dstack((red_norm, green_norm, blue_norm))
+                valid_mask = self.create_valid_mask(red, green, blue)
+                return self.add_alpha_channel(true_color, valid_mask)
+
+
     def ndvi_calculation(self, selected_item):
         if self._collection == "landsat-c2-l2" or self._collection == "landsat-c2-l1":
             red_url = selected_item.assets["red"].href

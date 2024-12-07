@@ -60,25 +60,6 @@ class LandsatProcessor(Processor):
                 dst.write(data[:, :, 3], 4)
         return temp_file.name
 
-    @staticmethod
-    def normalize(array):
-        array_min, array_max = array.min(), array.max()
-        return (array - array_min) / (array_max - array_min)
-
-    @staticmethod
-    def create_valid_mask(red, green, blue, no_data_value=0):
-        return (red != no_data_value) & (green != no_data_value) & (blue != no_data_value)
-
-    @staticmethod
-    def add_alpha_channel(true_color, valid_mask):
-        """creates and adds alpha channel to the true color image, alpha channel is used to indicate transparency"""
-        true_color_8bit = (true_color * 255).astype('uint8')
-
-        alpha = np.where(valid_mask, 255, 0).astype('uint8')
-
-        true_color_with_alpha = np.dstack((true_color_8bit, alpha))
-        return true_color_with_alpha
-
     def save_image_multiple_bands(self, src, data, filename):
         file_path = self.get_unique_filename(self._config.download_directory, filename, self._config.selected_file_type)
         with rasterio.open(
@@ -128,39 +109,29 @@ class LandsatProcessor(Processor):
                 green_url = selected_item.assets[green_name].href
                 blue_url = selected_item.assets[blue_name].href
 
-                with rasterio.open(red_url) as red_src, rasterio.open(green_url) as green_src, rasterio.open(blue_url) as blue_src:
-                    red = red_src.read(1).astype('float32')
-                    green = green_src.read(1).astype('float32')
-                    blue = blue_src.read(1).astype('float32')
+                true_color_with_alpha = self.true_false_color_calculation(red_url, green_url, blue_url, True)
 
-                    red_norm = self.normalize(red)
-                    green_norm = self.normalize(green)
-                    blue_norm = self.normalize(blue)
-
-                    true_color = np.dstack((red_norm, green_norm, blue_norm))
-                    valid_mask = self.create_valid_mask(red, green, blue)
-                    true_color_with_alpha = self.add_alpha_channel(true_color, valid_mask)
-
-                    # import
-                    if self._config.plot_checked:
-                        plt.figure()
-                        plt.imshow(true_color_with_alpha.astype('uint8'))
-                        plt.title(self._provider.plot_title + " " + self._collection + "-" + band)
-                        plt.axis("off")
-                        plt.show()
+                # import
+                if self._config.plot_checked:
+                    plt.figure()
+                    plt.imshow(true_color_with_alpha.astype('uint8'))
+                    plt.title(self._provider.plot_title + " " + self._collection + "-" + band)
+                    plt.axis("off")
+                    plt.show()
 
                 # download
                 if self._config.download_checked:
-                    file_path = self.save_image_multiple_bands(red_src, true_color_with_alpha, f"{self._provider.filename}_{self._collection}_{band.lower().replace(' ', '_')}")
-
-                    # import
-                    if self._config.import_checked:
-                        import_into_qgis(file_path, self._provider.qgis_layer_name + " " + self._collection + "-" + band)
+                    with rasterio.open(red_url) as red_src:
+                        file_path = self.save_image_multiple_bands(red_src, true_color_with_alpha, f"{self._provider.filename}_{self._collection}_{band.lower().replace(' ', '_')}")
+                        # import
+                        if self._config.import_checked:
+                            import_into_qgis(file_path, self._provider.qgis_layer_name + " " + self._collection + "-" + band)
 
                 # just import no download
                 if self._config.import_checked and not self._config.download_checked:
-                    filepath = self.write_temporary_file_multiple_bands(red_src, true_color_with_alpha)
-                    import_into_qgis(filepath, self._provider.qgis_layer_name + " " + self._collection + "-" + band)
+                    with rasterio.open(red_url) as red_src:
+                        filepath = self.write_temporary_file_multiple_bands(red_src, true_color_with_alpha)
+                        import_into_qgis(filepath, self._provider.qgis_layer_name + " " + self._collection + "-" + band)
             else:
                 # handle single bands
                 asset_name = self._provider.collection_mapping[self._collection][band]
