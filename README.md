@@ -6,7 +6,7 @@ This PyQGIS plugin was developed as part of my bachelor's thesis.
 
 - Lets the User select an area on the map
 - Returns a True Color Image of the selected area for a specific time frame using data from Sentinel Hub/Planetary Computer/Earth Search
-- Alternatively, users can select their preferred band (Red, Green, Blue, Nir Infrared) or choose False Color
+- Alternatively, users can select their preferred band (Red, Green, Blue, Near Infrared) or choose False Color
 - Downloads the Image in preferred file format and preferred directory
 - Calculates NDVI
 
