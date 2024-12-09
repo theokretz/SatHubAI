@@ -45,3 +45,7 @@ class RequestConfig:
     @property
     def additional_options(self):
         return self._additional_options
+
+    @additional_options.setter
+    def additional_options(self, value):
+        self._additional_options = value

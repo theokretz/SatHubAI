@@ -5,6 +5,9 @@ class OptionsConfig:
         self._ndvi_checked = ndvi_checked
         self._bands = bands
 
+    @property
+    def provider(self):
+        return self._provider
 
     @property
     def collection(self):

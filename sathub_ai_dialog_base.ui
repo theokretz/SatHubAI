@@ -22,7 +22,7 @@
      <widget class="QPushButton" name="pbSubmit">
       <property name="geometry">
        <rect>
-        <x>230</x>
+        <x>120</x>
         <y>720</y>
         <width>161</width>
         <height>23</height>
@@ -447,6 +447,19 @@
       </property>
       <property name="text">
        <string>Select Satellite Provider:</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pb_invekos_data">
+      <property name="geometry">
+       <rect>
+        <x>370</x>
+        <y>720</y>
+        <width>91</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>iNVEKOS data</string>
       </property>
      </widget>
     </widget>

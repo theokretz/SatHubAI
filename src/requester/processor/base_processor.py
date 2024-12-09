@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 import os
 import uuid
 from ...exceptions.ndvi_calculation_exception import NDVICalculationError
+from ...utils import import_into_qgis
+
 
 class Processor(ABC):
     def __init__(self, config, provider, collection):
@@ -124,4 +126,18 @@ class Processor(ABC):
 
             if self._config.download_checked:
                 ndvi_path = self.get_unique_filename(self._config.download_directory, "ndvi_" + self._provider.filename + "_" + self._collection, self._config.selected_file_type)
-                plt.savefig(ndvi_path, bbox_inches='tight', pad_inches=0, dpi=300)
+                with rasterio.open(
+                        ndvi_path,
+                        'w',
+                        driver='GTiff',
+                        height=red_src.height,
+                        width=red_src.width,
+                        count=1,
+                        dtype='float32',
+                        crs=red_src.crs,
+                        transform=red_src.transform,
+                ) as dst:
+                    dst.write(ndvi.astype('float32'), 1)
+                if self._config.import_checked:
+                    import_into_qgis(ndvi_path)
+

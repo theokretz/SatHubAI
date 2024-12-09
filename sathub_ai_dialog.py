@@ -24,10 +24,14 @@
 
 import os
 
+from .src.ai.load_invekos_data import LoadInvekosData
 from .src.requester.stac_requester import StacRequester
 from .src.options_dialog.options_dialog import OptionsDialog
 from .src.requester.request_config import RequestConfig
 from .src.requester.stac_service import StacService
+from .src.select_area import SelectArea
+from .src.requester.sentinel_hub_requester import SentinelHubRequester
+from .src.utils import display_warning_message
 
 # to load icons
 from . import resources_rc
@@ -38,9 +42,7 @@ from qgis.core import (
     QgsProject, QgsVectorLayer
 )
 
-from .src.select_area import SelectArea
-from .src.requester.sentinel_hub_requester import SentinelHubRequester
-from .src.utils import display_warning_message
+
 
 
 # This loads your .ui file so that PyQt can populate your plugin with the elements from Qt Designer
@@ -54,7 +56,11 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
         super(SatHubAIDialog, self).__init__(parent)
 
         self.options_dialog = None
-        self.additional_options = None
+
+        # additional options
+        self.additional_options_sentinel_hub = None
+        self.additional_options_planetary_computer = None
+        self.additional_options_earth_search = None
 
         # to select area on the map
         self.select_area_tool = None
@@ -79,7 +85,7 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
         self.pb_options_sh.clicked.connect(lambda: self.open_options_dialog("SENTINEL_HUB"))
         self.pb_options_pc.clicked.connect(lambda: self.open_options_dialog("PLANETARY_COMPUTER"))
         self.pb_options_es.clicked.connect(lambda: self.open_options_dialog("EARTH_SEARCH"))
-
+        self.pb_invekos_data.clicked.connect(self.on_invekos_data_clicked)
 
         self.setWindowTitle("SatHubAI")
         # ensure window is docked and not floating
@@ -88,6 +94,10 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
         # dock widget
         self.setWidget(self.main_widget)
 
+
+    def on_invekos_data_clicked(self):
+        loader= LoadInvekosData()
+        loader.load_invekos_bounding_box(self.coords_wgs84, self.download_directory)
 
     def open_options_dialog(self, provider):
         """opens the options dialog for satellite providers"""
@@ -100,7 +110,14 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
 
     def handle_additional_options(self, options_config):
         """handles the additional options set in the options dialog"""
-        self.additional_options = options_config
+        if options_config.provider == "PLANETARY_COMPUTER":
+            self.additional_options_planetary_computer = options_config
+        elif options_config.provider == "EARTH_SEARCH":
+            self.additional_options_earth_search = options_config
+        elif options_config.provider ==  "SENTINEL_HUB":
+            self.additional_options_sentinel_hub = options_config
+        else:
+            raise ValueError(f"Unsupported provider: {options_config.provider}")
 
     def on_fw_get_directory_clicked(self):
         self.download_directory = self.fwGetDirectory.filePath()
@@ -119,7 +136,6 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
         planetary_checked = self.cbPlanetaryComputer.isChecked()
         earth_search_checked = self.cbEarthSearch.isChecked()
 
-
         config = RequestConfig(
             self.coords_wgs84,
             start_date,
@@ -129,9 +145,8 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
             self.download_directory,
             import_checked,
             plot_checked,
-            self.additional_options
+            None
         )
-
 
         if self.coords_wgs84 == (None, None):
             display_warning_message('Please select an area.', 'No area selected!')
@@ -151,16 +166,20 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
 
         # sentinel hub
         if sentinel_checked:
+            config.additional_options = self.additional_options_sentinel_hub
             requester = SentinelHubRequester(config)
             requester.execute_request()
 
         # planetary computer
         if planetary_checked:
+            config.additional_options = self.additional_options_planetary_computer
+            print(config.additional_options)
             requester = StacRequester(config, StacService.Provider.PLANETARY_COMPUTER)
             requester.execute_request()
 
         # earth search
         if earth_search_checked:
+            config.additional_options = self.additional_options_earth_search
             requester = StacRequester(config, StacService.Provider.EARTH_SEARCH)
             requester.execute_request()
 
@@ -200,7 +219,7 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
             raise FileNotFoundError(f"Could not load vector layer: {vector_layer_path}")
         else:
             print("Layer loaded successfully!")
-
+            print(f"Layer World CRS: {vector_layer.crs().authid()}")
         project.addMapLayer(vector_layer)
         '''
         # raster layer
