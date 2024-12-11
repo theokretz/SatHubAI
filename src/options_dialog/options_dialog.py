@@ -7,6 +7,7 @@ import os
 from PyQt5.QtCore import Qt
 
 from .options_config import OptionsConfig
+from ..utils import display_error_message
 
 # load ui file
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'options_dialog.ui'))
@@ -78,6 +79,9 @@ class OptionsDialog(QDialog, FORM_CLASS):
     def on_pb_submit_clicked(self):
         checked_bands = [self.checkcbBands.itemText(i) for i in range(self.checkcbBands.count())
                          if self.checkcbBands.itemCheckState(i) == Qt.Checked]
+        if len(checked_bands) == 0:
+            display_error_message("Please select at least one band", "No band selected!")
+            return
         selected_options = OptionsConfig(self._provider, self.comboboxCollection.currentText(), self.cb_ndvi.isChecked(), checked_bands)
         self.options.emit(selected_options)
         self.close()
