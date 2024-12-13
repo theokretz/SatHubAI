@@ -24,7 +24,7 @@ class LandsatProcessor(Processor):
     ----------
     config : RequestConfig
         Configuration containing user options.
-    provider : StacService.Provider
+    provider : Provider
         Satellite Data Provider, either PLANETARY_COMPUTER or EARTH_SEARCH.
     collection : str
         Landsat collection, either landsat-c2-l1 or landsat-c2-l2.

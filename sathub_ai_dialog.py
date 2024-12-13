@@ -28,7 +28,7 @@ from .src.ai.load_invekos_data import LoadInvekosData
 from .src.requester.stac_requester import StacRequester
 from .src.options_dialog.options_dialog import OptionsDialog
 from .src.requester.request_config import RequestConfig
-from .src.requester.stac_service import StacService
+from .src.requester.provider import Provider
 from .src.select_area import SelectArea
 from .src.requester.sentinel_hub_requester import SentinelHubRequester
 from .src.utils import display_warning_message
@@ -174,13 +174,13 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
         if planetary_checked:
             config.additional_options = self.additional_options_planetary_computer
             print(config.additional_options)
-            requester = StacRequester(config, StacService.Provider.PLANETARY_COMPUTER)
+            requester = StacRequester(config, Provider.PLANETARY_COMPUTER)
             requester.execute_request()
 
         # earth search
         if earth_search_checked:
             config.additional_options = self.additional_options_earth_search
-            requester = StacRequester(config, StacService.Provider.EARTH_SEARCH)
+            requester = StacRequester(config, Provider.EARTH_SEARCH)
             requester.execute_request()
 
 

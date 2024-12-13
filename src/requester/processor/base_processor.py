@@ -25,7 +25,7 @@ class Processor(ABC):
     ----------
     config : RequestConfig
         Configuration containing user options.
-    provider : StacService.Provider
+    provider : Provider
         Satellite Data Provider, either PLANETARY_COMPUTER or EARTH_SEARCH.
     collection : str
         Satellite data collection.
@@ -163,9 +163,7 @@ class Processor(ABC):
             Boolean mask for valid pixels.
         """
         true_color_8bit = (true_color * 255).astype('uint8')
-
         alpha = np.where(valid_mask, 255, 0).astype('uint8')
-
         return np.dstack((true_color_8bit, alpha))
 
 

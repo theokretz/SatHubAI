@@ -3,7 +3,7 @@
 
 from .processor.processor_factory import ProcessorFactory
 from .requester import Requester
-from .stac_service import StacService
+from .provider import Provider
 from ..utils import display_warning_message
 
 
@@ -32,7 +32,13 @@ class StacRequester(Requester):
         return min_lon, min_lat, max_lon, max_lat
 
     def request_data(self):
-        catalog = StacService.get_client(self.provider)
+        """
+
+        Returns
+        -------
+
+        """
+        catalog = Provider.get_client(self.provider)
 
         bbox = self.calculate_bbox(self.config.coords)
 

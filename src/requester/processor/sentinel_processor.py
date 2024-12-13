@@ -27,7 +27,7 @@ class SentinelProcessor(Processor):
     ----------
     config : RequestConfig
         Configuration containing user options.
-    provider : StacService.Provider
+    provider : Provider
         Satellite Data Provider, either PLANETARY_COMPUTER or EARTH_SEARCH.
     collection : str
         Sentinel collection, either sentinel-2-l2a or sentinel-2-l1c
