@@ -423,7 +423,3 @@ class SentinelHubRequester(Requester):
                             if file.endswith(file_ending):
                                 full_path = os.path.join(extract_directory, file)
                                 import_into_qgis(full_path, f"Sentinel Hub {collection_name} - {file}")
-
-
-
-

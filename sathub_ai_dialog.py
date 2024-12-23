@@ -24,6 +24,8 @@
 
 import os
 
+from .src.logger_setup import setup_logging
+from .src.utils import display_error_message
 from .src.ai.load_invekos_data import LoadInvekosData
 from .src.requester.stac_requester import StacRequester
 from .src.options_dialog.options_dialog import OptionsDialog
@@ -54,6 +56,8 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
     def __init__(self, canvas, parent=None):
         """Constructor."""
         super(SatHubAIDialog, self).__init__(parent)
+
+        self.logger = setup_logging()
 
         self.options_dialog = None
 
@@ -97,7 +101,10 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
 
     def on_invekos_data_clicked(self):
         loader= LoadInvekosData()
-        loader.load_invekos_bounding_box(self.coords_wgs84, self.download_directory)
+        try:
+            loader.request_invekos_data(self.coords_wgs84, self.calendarStart.selectedDate(), self.calendarEnd.selectedDate())
+        except Exception as e:
+            display_error_message(str(e))
 
     def open_options_dialog(self, provider):
         """opens the options dialog for satellite providers"""

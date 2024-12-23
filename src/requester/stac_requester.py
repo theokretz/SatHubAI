@@ -4,7 +4,7 @@
 from .processor.processor_factory import ProcessorFactory
 from .requester import Requester
 from .provider import Provider
-from ..utils import display_warning_message
+from ..utils import display_warning_message, calculate_bbox
 
 
 class StacRequester(Requester):
@@ -22,15 +22,6 @@ class StacRequester(Requester):
         self.collection = None
 
 
-    @staticmethod
-    def calculate_bbox(coords):
-        # get min and max coordinates
-        min_lon = min(coords[0].x(), coords[1].x())
-        max_lon = max(coords[0].x(), coords[1].x())
-        min_lat = min(coords[0].y(), coords[1].y())
-        max_lat = max(coords[0].y(), coords[1].y())
-        return min_lon, min_lat, max_lon, max_lat
-
     def request_data(self):
         """
 
@@ -40,7 +31,7 @@ class StacRequester(Requester):
         """
         catalog = Provider.get_client(self.provider)
 
-        bbox = self.calculate_bbox(self.config.coords)
+        bbox = calculate_bbox(self.config.coords)
 
         if self.config.additional_options:
             self.collection =  self.collection_mapping.get(self.config.additional_options.collection)
