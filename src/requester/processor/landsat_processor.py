@@ -68,7 +68,6 @@ class LandsatProcessor(Processor):
         # NDVI
         if self._config.additional_options and self._config.additional_options.ndvi_checked:
             self.ndvi_calculation(selected_item)
-        print("FINISHED")
 
     def get_bands(self):
         """

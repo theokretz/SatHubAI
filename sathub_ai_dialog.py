@@ -24,6 +24,7 @@
 
 import os
 
+from .src.ai.invekos_manager import InvekosManager
 from .src.logger_setup import setup_logging
 from .src.utils import display_error_message
 from .src.ai.load_invekos_data import LoadInvekosData
@@ -43,8 +44,6 @@ from qgis.PyQt import uic
 from qgis.core import (
     QgsProject, QgsVectorLayer
 )
-
-
 
 
 # This loads your .ui file so that PyQt can populate your plugin with the elements from Qt Designer
@@ -77,6 +76,9 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
 
         # get canvas from parent - needed to interact with the map
         self.canvas = canvas
+
+        # Add InvekosManager
+        self.invekos_manager = InvekosManager()
 
         # set up a widget to contain the UI elements
         self.main_widget = QWidget(self)
@@ -137,23 +139,13 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
         selected_file_type = self.comboboxFileType.currentText()
         import_checked = self.cb_import.isChecked()
         plot_checked = self.cb_plot_image.isChecked()
+        change_detection = self.cb_change_detection.isChecked()
+        invekos_data = self.cb_invekos.isChecked()
 
         # checkboxes provider
         sentinel_checked = self.cbSentinelHub.isChecked()
         planetary_checked = self.cbPlanetaryComputer.isChecked()
         earth_search_checked = self.cbEarthSearch.isChecked()
-
-        config = RequestConfig(
-            self.coords_wgs84,
-            start_date,
-            end_date,
-            download_checked,
-            selected_file_type,
-            self.download_directory,
-            import_checked,
-            plot_checked,
-            None
-        )
 
         if self.coords_wgs84 == (None, None):
             display_warning_message('Please select an area.', 'No area selected!')
@@ -167,9 +159,41 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
             display_warning_message('Please select download directory.', 'No Directory selected!')
             return
 
+        # First load INVEKOS data if change detection is enabled
+        if change_detection or invekos_data:
+            invekos_layer = self.invekos_manager.load_invekos_data(
+                self.coords_wgs84,
+                self.calendarStart.selectedDate(),
+                self.calendarEnd.selectedDate()
+            )
+
+            if not invekos_layer:
+                display_warning_message(
+                    "Failed to load INVEKOS data. Please check your selection.",
+                    "INVEKOS Data Error"
+                )
+                return
+
+            # if only invekos checked - operation successful and return
+            if invekos_data and not sentinel_checked and not planetary_checked and not earth_search_checked:
+                return
+
         if not sentinel_checked and not planetary_checked and not earth_search_checked:
             display_warning_message("Please select a satellite provider.","No Satellite Provider selected!")
             return
+
+        config = RequestConfig(
+            self.coords_wgs84,
+            start_date,
+            end_date,
+            download_checked,
+            selected_file_type,
+            self.download_directory,
+            import_checked,
+            plot_checked,
+            change_detection,
+            None
+        )
 
         # sentinel hub
         if sentinel_checked:
@@ -181,13 +205,13 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
         if planetary_checked:
             config.additional_options = self.additional_options_planetary_computer
             print(config.additional_options)
-            requester = StacRequester(config, Provider.PLANETARY_COMPUTER)
+            requester = StacRequester(config, Provider.PLANETARY_COMPUTER, self.invekos_manager)
             requester.execute_request()
 
         # earth search
         if earth_search_checked:
             config.additional_options = self.additional_options_earth_search
-            requester = StacRequester(config, Provider.EARTH_SEARCH)
+            requester = StacRequester(config, Provider.EARTH_SEARCH, self.invekos_manager)
             requester.execute_request()
 
 
@@ -206,7 +230,6 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
     @staticmethod
     def add_map_layer():
         """adds map layers"""
-        # TODO: choose map layer -> raster or vector
         project = QgsProject.instance()
 
         # TODO: maybe remove this, useful for development tho
@@ -228,18 +251,7 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
             print("Layer loaded successfully!")
             print(f"Layer World CRS: {vector_layer.crs().authid()}")
         project.addMapLayer(vector_layer)
-        '''
-        # raster layer
-        raster_layer_path = os.path.join(current_directory, 'mapLayers', 'NE1_LR_LC_SR_W', 'NE1_LR_LC_SR_W.tif')
-        raster_layer = QgsRasterLayer(raster_layer_path, "Raster Layer")
 
-        if not raster_layer.isValid():
-            raise FileNotFoundError(f"Could not load raster layer: {raster_layer_path}")
-        else:
-            print("Layer loaded successfully!")
-
-        project.addMapLayer(raster_layer)
-        '''
 
     # TODO: maybe just send top left and bottom right coordinates
     def handle_coordinates(self, top_left, top_right, bottom_right, bottom_left):

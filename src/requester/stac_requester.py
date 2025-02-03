@@ -1,6 +1,6 @@
 # stac_requester.py
 # credits: https://planetarycomputer.microsoft.com/docs/quickstarts/reading-stac/
-
+from .processor.change_detection_processor import ChangeDetectionProcessor
 from .processor.processor_factory import ProcessorFactory
 from .requester import Requester
 from .provider import Provider
@@ -15,19 +15,22 @@ class StacRequester(Requester):
         "Landsat Collection 2 L2": "landsat-c2-l2",
     }
 
-    def __init__(self, config, provider):
+    def __init__(self, config, provider, invekos_manager=None):
         super().__init__(config)
         self.config = config
         self.provider = provider
         self.collection = None
+        self.invekos_manager = invekos_manager
 
 
     def request_data(self):
         """
+        Request and process satellite data from a STAC API.
 
         Returns
         -------
-
+        None
+            Processes data through selected processor
         """
         catalog = Provider.get_client(self.provider)
 
@@ -59,8 +62,13 @@ class StacRequester(Requester):
             display_warning_message("Change your options.", "No satellite data found!")
             return
 
-        # select item with the lowest cloudiness -> problem: often selects image with no data areas
-        selected_item = min(items, key=lambda item: item.properties["eo:cloud_cover"])
+        # create processor
+        processor = ProcessorFactory.create_processor(self.config, self.provider, self.collection, self.invekos_manager)
 
-        processor = ProcessorFactory.create_processor(self.config, self.provider, self.collection)
-        processor.process(selected_item)
+        # For change detection, use all items
+        if isinstance(processor, ChangeDetectionProcessor):
+            processor.process(items)
+        else:
+            # select item with the lowest cloudiness
+            selected_item = min(items, key=lambda item: item.properties["eo:cloud_cover"])
+            processor.process(selected_item)

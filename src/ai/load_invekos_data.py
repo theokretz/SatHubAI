@@ -1,5 +1,4 @@
 
-
 from qgis.core import (
     QgsVectorLayer,
     QgsProject,
@@ -117,11 +116,15 @@ class LoadInvekosData:
 
         bbox = calculate_bbox(coords)
         print(os.cpu_count() * 4)
-        max_workers = os.cpu_count() * 4
+        max_workers = os.cpu_count() * 2
         logger.info(f"Using {max_workers} workers for fetching data...")
 
         # fetch all features within the bounding box with pagination
         all_features = self.fetch_all_with_pagination(bbox, limit=100, max_workers=max_workers)
+
+        if not all_features:
+            logger.error("No data available for requested time range")
+            raise
 
         logger.info(f"Total features fetched: {len(all_features)}")
 

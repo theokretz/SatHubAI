@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>611</width>
+    <width>612</width>
     <height>873</height>
    </rect>
   </property>
@@ -22,8 +22,8 @@
      <widget class="QPushButton" name="pbSubmit">
       <property name="geometry">
        <rect>
-        <x>120</x>
-        <y>720</y>
+        <x>210</x>
+        <y>750</y>
         <width>161</width>
         <height>23</height>
        </rect>
@@ -174,8 +174,8 @@
       <property name="geometry">
        <rect>
         <x>310</x>
-        <y>460</y>
-        <width>314</width>
+        <y>500</y>
+        <width>281</width>
         <height>204</height>
        </rect>
       </property>
@@ -195,9 +195,9 @@
      <widget class="QWidget" name="verticalLayoutWidget_2">
       <property name="geometry">
        <rect>
-        <x>7</x>
-        <y>460</y>
-        <width>314</width>
+        <x>10</x>
+        <y>500</y>
+        <width>291</width>
         <height>204</height>
        </rect>
       </property>
@@ -225,6 +225,9 @@
       </property>
       <property name="text">
        <string>Import into QGIS</string>
+      </property>
+      <property name="checked">
+       <bool>false</bool>
       </property>
      </widget>
      <widget class="QWidget" name="horizontalLayoutWidget_3">
@@ -449,17 +452,33 @@
        <string>Select Satellite Provider:</string>
       </property>
      </widget>
-     <widget class="QPushButton" name="pb_invekos_data">
+     <widget class="QCheckBox" name="cb_change_detection">
       <property name="geometry">
        <rect>
-        <x>370</x>
-        <y>720</y>
-        <width>91</width>
-        <height>23</height>
+        <x>230</x>
+        <y>440</y>
+        <width>121</width>
+        <height>21</height>
        </rect>
       </property>
       <property name="text">
-       <string>iNVEKOS data</string>
+       <string>Change Detection</string>
+      </property>
+      <property name="checked">
+       <bool>false</bool>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="cb_invekos">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>440</y>
+        <width>141</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Load INVEKOS Data</string>
       </property>
      </widget>
     </widget>

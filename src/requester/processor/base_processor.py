@@ -34,7 +34,12 @@ class Processor(ABC):
         self._config = config
         self._provider = provider
         self._collection = collection
-
+        self.band_provider_mapping = {
+            "landsat-c2-l2": ("red", "nir08"),
+            "landsat-c2-l1": ("red", "nir08"),
+            self._provider.EARTH_SEARCH: ("red", "nir"),
+            self._provider.PLANETARY_COMPUTER: ("B04", "B08"),
+        }
     @abstractmethod
     def process(self, selected_item):
         """
@@ -296,14 +301,8 @@ class Processor(ABC):
         selected_item : pystac.item.Item
             STAC item to be processed.
         """
-        band_provider_mapping = {
-            "landsat-c2-l2": ("red", "nir08"),
-            "landsat-c2-l1": ("red", "nir08"),
-            self._provider.EARTH_SEARCH: ("red", "nir"),
-            self._provider.PLANETARY_COMPUTER: ("B04", "B08"),
-        }
         try:
-            red_band, nir_band = band_provider_mapping.get(self._collection) or band_provider_mapping[self._provider]
+            red_band, nir_band = self.band_provider_mapping.get(self._collection) or self.band_provider_mapping[self._provider]
         except KeyError:
             raise NDVICalculationError("NDVI cannot be calculated for this asset.")
 
