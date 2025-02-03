@@ -24,10 +24,10 @@
 
 import os
 
-from .src.ai.invekos_manager import InvekosManager
+from .src.invekos.invekos_manager import InvekosManager
 from .src.logger_setup import setup_logging
 from .src.utils import display_error_message
-from .src.ai.load_invekos_data import LoadInvekosData
+from .src.invekos.load_invekos_data import LoadInvekosData
 from .src.requester.stac_requester import StacRequester
 from .src.options_dialog.options_dialog import OptionsDialog
 from .src.requester.request_config import RequestConfig
