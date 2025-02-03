@@ -91,7 +91,6 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
         self.pb_options_sh.clicked.connect(lambda: self.open_options_dialog("SENTINEL_HUB"))
         self.pb_options_pc.clicked.connect(lambda: self.open_options_dialog("PLANETARY_COMPUTER"))
         self.pb_options_es.clicked.connect(lambda: self.open_options_dialog("EARTH_SEARCH"))
-        self.pb_invekos_data.clicked.connect(self.on_invekos_data_clicked)
 
         self.setWindowTitle("SatHubAI")
         # ensure window is docked and not floating
@@ -99,14 +98,6 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
 
         # dock widget
         self.setWidget(self.main_widget)
-
-
-    def on_invekos_data_clicked(self):
-        loader= LoadInvekosData()
-        try:
-            loader.request_invekos_data(self.coords_wgs84, self.calendarStart.selectedDate(), self.calendarEnd.selectedDate())
-        except Exception as e:
-            display_error_message(str(e))
 
     def open_options_dialog(self, provider):
         """opens the options dialog for satellite providers"""
