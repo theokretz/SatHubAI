@@ -175,7 +175,7 @@
        <rect>
         <x>310</x>
         <y>500</y>
-        <width>281</width>
+        <width>314</width>
         <height>204</height>
        </rect>
       </property>
@@ -188,7 +188,15 @@
         </widget>
        </item>
        <item>
-        <widget class="QCalendarWidget" name="calendarEnd"/>
+        <widget class="QCalendarWidget" name="calendarEnd">
+         <property name="selectedDate">
+          <date>
+           <year>2024</year>
+           <month>12</month>
+           <day>31</day>
+          </date>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>
@@ -197,7 +205,7 @@
        <rect>
         <x>10</x>
         <y>500</y>
-        <width>291</width>
+        <width>314</width>
         <height>204</height>
        </rect>
       </property>
@@ -210,7 +218,15 @@
         </widget>
        </item>
        <item>
-        <widget class="QCalendarWidget" name="calendarStart"/>
+        <widget class="QCalendarWidget" name="calendarStart">
+         <property name="selectedDate">
+          <date>
+           <year>2024</year>
+           <month>6</month>
+           <day>30</day>
+          </date>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>
@@ -479,6 +495,22 @@
       </property>
       <property name="text">
        <string>Load INVEKOS Data</string>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="cb_crop_classification">
+      <property name="geometry">
+       <rect>
+        <x>400</x>
+        <y>440</y>
+        <width>131</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Crop Classification</string>
+      </property>
+      <property name="checked">
+       <bool>false</bool>
       </property>
      </widget>
     </widget>
