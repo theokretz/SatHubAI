@@ -36,8 +36,8 @@ def import_into_qgis(asset_url, layer_name):
 
 def calculate_bbox(coords):
     # get min and max coordinates
-    min_lon = min(coords[0].x(), coords[1].x())
-    max_lon = max(coords[0].x(), coords[1].x())
-    min_lat = min(coords[0].y(), coords[1].y())
-    max_lat = max(coords[0].y(), coords[1].y())
-    return min_lon, min_lat, max_lon, max_lat
+    minx = min(coords[0].x(), coords[1].x())
+    maxx= max(coords[0].x(), coords[1].x())
+    miny = min(coords[0].y(), coords[1].y())
+    maxy = max(coords[0].y(), coords[1].y())
+    return minx, miny, maxx, maxy

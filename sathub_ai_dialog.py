@@ -132,6 +132,7 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
         plot_checked = self.cb_plot_image.isChecked()
         change_detection = self.cb_change_detection.isChecked()
         invekos_data = self.cb_invekos.isChecked()
+        crop_classification = self.cb_crop_classification.isChecked()
 
         # checkboxes provider
         sentinel_checked = self.cbSentinelHub.isChecked()
@@ -151,7 +152,7 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
             return
 
         # First load INVEKOS data if change detection is enabled
-        if change_detection or invekos_data:
+        if change_detection or invekos_data or crop_classification:
             invekos_layer = self.invekos_manager.load_invekos_data(
                 self.coords_wgs84,
                 self.calendarStart.selectedDate(),
@@ -166,7 +167,7 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
                 return
 
             # if only invekos checked - operation successful and return
-            if invekos_data and not sentinel_checked and not planetary_checked and not earth_search_checked:
+            if invekos_data and not sentinel_checked and not planetary_checked and not earth_search_checked and not change_detection and not crop_classification:
                 return
 
         if not sentinel_checked and not planetary_checked and not earth_search_checked:
@@ -183,6 +184,7 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
             import_checked,
             plot_checked,
             change_detection,
+            crop_classification,
             None
         )
 
@@ -195,7 +197,6 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
         # planetary computer
         if planetary_checked:
             config.additional_options = self.additional_options_planetary_computer
-            print(config.additional_options)
             requester = StacRequester(config, Provider.PLANETARY_COMPUTER, self.invekos_manager)
             requester.execute_request()
 

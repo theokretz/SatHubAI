@@ -5,6 +5,7 @@ Defines the ProcessorFactory class for creating processor instances based on sat
 """
 from .base_processor import Processor
 from .change_detection_processor import ChangeDetectionProcessor
+from .crop_classification_processor import CropClassificationProcessor
 from .landsat_processor import LandsatProcessor
 from .sentinel_processor import SentinelProcessor
 from ..request_config import RequestConfig
@@ -45,8 +46,12 @@ class ProcessorFactory:
         if config.change_detection:
             if not invekos_manager:
                 raise ValueError("InvekosManager required for change detection")
-
             return ChangeDetectionProcessor(config, provider, collection, invekos_manager)
+
+        if config.crop_classification:
+            if not invekos_manager:
+                raise ValueError("InvekosManager required for crop detection")
+            return CropClassificationProcessor(config, provider, collection, invekos_manager)
 
         # go through the mapping and find the correct processor class
         for key, processor_class in ProcessorFactory._collection_processor_mapping.items():

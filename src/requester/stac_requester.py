@@ -1,11 +1,16 @@
 # stac_requester.py
 # credits: https://planetarycomputer.microsoft.com/docs/quickstarts/reading-stac/
+import logging
+
 from .processor.change_detection_processor import ChangeDetectionProcessor
+from .processor.crop_classification_processor import CropClassificationProcessor
 from .processor.processor_factory import ProcessorFactory
 from .requester import Requester
 from .provider import Provider
 from ..utils import display_warning_message, calculate_bbox
+import numpy as np
 
+logger = logging.getLogger("SatHubAI.StacRequester")
 
 class StacRequester(Requester):
     collection_mapping = {
@@ -58,17 +63,71 @@ class StacRequester(Requester):
         search = catalog.search(**search_params)
         items = search.item_collection()
 
+        logger.info(f"Found {len(items)} images")
+
         if not items:
             display_warning_message("Change your options.", "No satellite data found!")
+            logger.warning("No satellite data found!")
             return
 
         # create processor
         processor = ProcessorFactory.create_processor(self.config, self.provider, self.collection, self.invekos_manager)
 
-        # For change detection, use all items
-        if isinstance(processor, ChangeDetectionProcessor):
+        # For change detection and crop classification, use all items
+        if isinstance(processor, ChangeDetectionProcessor) or isinstance(processor, CropClassificationProcessor):
             processor.process(items)
         else:
             # select item with the lowest cloudiness
             selected_item = min(items, key=lambda item: item.properties["eo:cloud_cover"])
             processor.process(selected_item)
+
+
+    def request_multiple_images(self, catalog):
+        """Needed for TrainingDataProcessor"""
+        minx, miny, maxx, maxy = calculate_bbox(self.config.coords)
+
+        # define the max tile size
+        TILE_SIZE = 1.0
+
+        lat_splits = np.arange(miny, maxy, TILE_SIZE)
+        lon_splits = np.arange(minx, maxx, TILE_SIZE)
+
+        # store all satellite images
+        all_items = []
+        logger.info(f"Splitting area into {len(lat_splits)} latitude and {len(lon_splits)} longitude steps.")
+
+        # request data for each sub-bbox
+        for lat in lat_splits:
+            for lon in lon_splits:
+                BUFFER = 0.05  # Adjust based on resolution
+                sub_bbox = [lon - BUFFER, lat - BUFFER, min(lon + TILE_SIZE + BUFFER, maxx),
+                            min(lat + TILE_SIZE + BUFFER, maxy)]
+
+                logger.info(f"Requesting data for sub-BBOX: {sub_bbox}")
+                search_params = {
+                    "collections": self.collection,
+                    "bbox": sub_bbox,
+                    "datetime": f"{self.config.start_date}/{self.config.end_date}",
+                }
+                # add query parameter only if supported - only supported in sentinel-2-l2a collection
+                if self.collection == "sentinel-2-l2a":
+                    search_params["query"] = {
+                        "eo:cloud_cover": {"lt": 10},
+                        "s2:nodata_pixel_percentage": {"lt": 1},
+                    }
+
+                search = catalog.search(**search_params)
+                items = search.item_collection()
+
+                if items:
+                    all_items.extend(items)
+                    logger.info(f"Found {len(items)} images for BBOX {sub_bbox}")
+                    print(f"Found {len(items)} images for BBOX {sub_bbox}")
+                else:
+                    logger.info(f"Total satellite images collected: {len(all_items)}")
+
+        if not all_items:
+            display_warning_message("Expand the area or change options.", "No satellite data found!")
+            return None
+
+        return all_items

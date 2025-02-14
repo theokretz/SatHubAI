@@ -4,15 +4,16 @@ Change detection processor using parallel processing.
 """
 import numpy as np
 import logging
-from datetime import datetime
 from typing import List, Dict
-from concurrent.futures import ThreadPoolExecutor, as_completed, ProcessPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import os
 from datetime import datetime
 import rasterio
 import rasterio.mask
 from rasterio.features import geometry_mask
 import json
+from shapely.io import from_geojson
+import geopandas as gpd
 from .base_processor import Processor
 from qgis.core import (
     QgsVectorLayer,
@@ -34,7 +35,7 @@ from qgis.core import (
 from rasterio.env import Env
 
 from threading import Lock
-logger = logging.getLogger("SatHubAI.ThreadedChangeDetectionProcessor")
+logger = logging.getLogger("SatHubAI.ChangeDetectionProcessor")
 
 class ChangeDetectionProcessor(Processor):
     def __init__(self, config, provider, collection, invekos_manager):
@@ -79,10 +80,6 @@ class ChangeDetectionProcessor(Processor):
 
         # process fields in parallel
         with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
-            print("FEATURES:", invekos_layer.getFeatures)
-            for feature in invekos_layer.getFeatures():
-                print(feature['fs_kennung'])
-
             # create futures for each field
             future_to_field = {
                 executor.submit(
@@ -96,7 +93,7 @@ class ChangeDetectionProcessor(Processor):
             # process results as they complete
             for future in as_completed(future_to_field):
                 feature = future_to_field[future]
-                field_id = feature['fs_kennung']
+                field_id = feature['id']
                 try:
                     field_results = future.result()
                     self.change_results[field_id] = field_results['changes']
@@ -142,7 +139,7 @@ class ChangeDetectionProcessor(Processor):
 
         try:
             ndvi_workers = min(4, len(items_list))
-            field_id = feature['fs_kennung']
+            field_id = feature['id']
             with ThreadPoolExecutor(max_workers=ndvi_workers) as ndvi_executor:
                 future_to_date = {
                     ndvi_executor.submit(self.calculate_masked_ndvi, item, feature): item
@@ -161,7 +158,7 @@ class ChangeDetectionProcessor(Processor):
                             results['ndvi_values'].append(ndvi_mean)
 
                     except Exception as e:
-                        logger.error(f"Error calculating NDVI for field {feature['fs_kennung']}: {str(e)}")
+                        logger.error(f"Error calculating NDVI for field {feature['id']}: {str(e)}")
 
             # detect significant NDVI drops
             if len(results['ndvi_values']) > 1:
@@ -233,9 +230,9 @@ class ChangeDetectionProcessor(Processor):
             # dynamically creat expression
             expression_parts = []
             if change_ids:
-                expression_parts.append(f"WHEN fs_kennung IN ({','.join(change_ids)}) THEN '1'")
+                expression_parts.append(f"WHEN id IN ({','.join(change_ids)}) THEN '1'")
             if error_ids:
-                expression_parts.append(f"WHEN fs_kennung IN ({','.join(error_ids)}) THEN '-1'")
+                expression_parts.append(f"WHEN id IN ({','.join(error_ids)}) THEN '-1'")
 
             # default is '0' (No Change)
             expression = f"CASE {' '.join(expression_parts)} ELSE '0' END" if expression_parts else "'0'"
@@ -271,11 +268,16 @@ class ChangeDetectionProcessor(Processor):
         float or None
             Mean NDVI value for the field or None if calculation fails
         """
-        field_id = feature['fs_kennung']
+        field_id = feature['id']
         date = datetime.strptime(selected_item.properties['datetime'], '%Y-%m-%dT%H:%M:%S.%fZ')
 
         try:
-            red_band, nir_band = self.band_provider_mapping.get(self._collection) or self.band_provider_mapping[self._provider]
+            # transform invekos field from "EPSG:4326" to "EPSG:32633"
+            geom = from_geojson(feature.geometry().asJson())
+            geom_gdf = gpd.GeoSeries([geom], crs="EPSG:4326").to_crs("EPSG:32633").iloc[0]
+            bounds = geom_gdf.bounds
+
+            red_band, nir_band, green_band, blue_band = self.band_provider_mapping.get(self._collection) or self.band_provider_mapping[self._provider]
             red_url = selected_item.assets[red_band].href
             nir_url = selected_item.assets[nir_band].href
 

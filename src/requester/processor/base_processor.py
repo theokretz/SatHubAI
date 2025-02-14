@@ -13,7 +13,10 @@ import uuid
 import tempfile
 from ...exceptions.ndvi_calculation_exception import NDVICalculationError
 from ...utils import import_into_qgis
+import rasterio
+import logging
 
+logger = logging.getLogger("SatHubAI.Processor")
 
 class Processor(ABC):
     """
@@ -37,8 +40,8 @@ class Processor(ABC):
         self.band_provider_mapping = {
             "landsat-c2-l2": ("red", "nir08"),
             "landsat-c2-l1": ("red", "nir08"),
-            self._provider.EARTH_SEARCH: ("red", "nir"),
-            self._provider.PLANETARY_COMPUTER: ("B04", "B08"),
+            self._provider.EARTH_SEARCH: ("red", "nir", "green", "blue"),
+            self._provider.PLANETARY_COMPUTER: ("B04", "B08", "B03", "B02"),
         }
     @abstractmethod
     def process(self, selected_item):

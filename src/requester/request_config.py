@@ -1,5 +1,5 @@
 class RequestConfig:
-    def __init__(self, coords, start_date, end_date, download_checked, selected_file_type, download_directory, import_checked, plot_checked, change_detection, additional_options):
+    def __init__(self, coords, start_date, end_date, download_checked, selected_file_type, download_directory, import_checked, plot_checked, change_detection, crop_classification, additional_options):
         self._coords = coords
         self._start_date = start_date
         self._end_date = end_date
@@ -9,6 +9,7 @@ class RequestConfig:
         self._import_checked = import_checked
         self._plot_checked = plot_checked
         self._change_detection = change_detection
+        self._crop_classification = crop_classification
         self._additional_options = additional_options
 
     @property
@@ -50,6 +51,10 @@ class RequestConfig:
     @property
     def change_detection(self):
         return self._change_detection
+
+    @property
+    def crop_classification(self):
+        return self._crop_classification
 
     @additional_options.setter
     def additional_options(self, value):
