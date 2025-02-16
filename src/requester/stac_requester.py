@@ -59,6 +59,10 @@ class StacRequester(Requester):
                 "eo:cloud_cover": {"lt": 10},
                 "s2:nodata_pixel_percentage": {"lt": 1},
             }
+        else:
+            search_params["query"] = {
+                "eo:cloud_cover": {"lt": 10},
+            }
 
         search = catalog.search(**search_params)
         items = search.item_collection()
