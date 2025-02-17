@@ -1,7 +1,7 @@
 """
 crop_classification_processor.py
 =================
-Processor for classifying crops as either pure crops (Reinsaat) or mixed crops (Mischsaat) using satellite data features.
+Processor for classifying crops as either single crops (Reinsaat) or mixed crops (Mischsaat) using satellite data features.
 """
 import joblib
 import numpy as np
@@ -18,7 +18,7 @@ from rasterio.features import geometry_mask
 from shapely.geometry import box
 from shapely.io import from_geojson
 from pathlib import Path
-from ...crop_classification.crop_types import is_pure_crop
+from ...crop_classification.crop_types import is_single_crop
 import pandas as pd
 import geopandas as gpd
 from .base_processor import Processor
@@ -29,7 +29,7 @@ logger = logging.getLogger("SatHubAI.CropClassificationProcessor")
 
 class CropClassificationProcessor(Processor):
     """
-       Processor for classifying crops as pure (Reinsaat) or mixed (Mischsaat) using satellite data.
+       Processor for classifying crops as single (Reinsaat) or mixed (Mischsaat) using satellite data.
     """
     def __init__(self, config, provider, collection, invekos_manager):
         super().__init__(config, provider, collection)
@@ -99,7 +99,7 @@ class CropClassificationProcessor(Processor):
             for future in as_completed(future_to_field):
                 field = future_to_field[future]
                 field_id = field['id']
-                crop_label = is_pure_crop(field['snar_bezeichnung'])
+                crop_label = is_single_crop(field['snar_bezeichnung'])
                 area = field['sl_flaeche_brutto_ha']
                 try:
                     field_features = future.result()
@@ -490,9 +490,9 @@ class CropClassificationProcessor(Processor):
                 # convert features dictionary to DataFrame
                 features_df = pd.DataFrame.from_dict(self.prediction_results, orient='index')
 
-                # convert 1 to Pure Crop and 0 to Mixed Crop
+                # convert 1 to Single Crop and 0 to Mixed Crop
                 if "crop_prediction" in features_df.columns:
-                    features_df["crop_prediction"] = features_df["crop_prediction"].map({1: "Pure Crop", 0: "Mixed Crop"})
+                    features_df["crop_prediction"] = features_df["crop_prediction"].map({1: "Single Crop", 0: "Mixed Crop"})
 
                 # reorder columns move crop_prediction after field_id
                 if "crop_prediction" in features_df.columns:
@@ -523,7 +523,7 @@ class CropClassificationProcessor(Processor):
         Updates the QGIS layer styling based on crop classification results.
 
         Colors:
-        - Blue for "Pure Crop"
+        - Blue for "Single Crop"
         - Yellow for "Mixed Crop"
 
         Parameters
@@ -537,13 +537,13 @@ class CropClassificationProcessor(Processor):
                 return
 
             # define new colors for classifications
-            pure_crop_symbol = QgsFillSymbol.createSimple({'color': '#0000FF'})  # Blue for Pure Crop
+            single_crop_symbol = QgsFillSymbol.createSimple({'color': '#0000FF'})  # Blue for Single Crop
             mixed_crop_symbol = QgsFillSymbol.createSimple({'color': '#FFD700'})  # Yellow for Mixed Crop
             unknown_symbol = QgsFillSymbol.createSimple({'color': '#808080'})  # Gray for Unknown
 
             # define categories based on crop_prediction
             categories = [
-                QgsRendererCategory("Pure Crop", pure_crop_symbol, "Pure Crop"),
+                QgsRendererCategory("Single Crop", single_crop_symbol, "Single Crop"),
                 QgsRendererCategory("Mixed Crop", mixed_crop_symbol, "Mixed Crop"),
                 QgsRendererCategory(None, unknown_symbol, "Unknown")  # Handles NULL values
             ]
@@ -584,5 +584,5 @@ class CropClassificationProcessor(Processor):
                 field_id = feature["id"]
                 if field_id in self.prediction_results:
                     pred_value = self.prediction_results[field_id]["crop_prediction"]
-                    feature["crop_prediction"] = "Pure Crop" if pred_value == 1 else "Mixed Crop"
+                    feature["crop_prediction"] = "Single Crop" if pred_value == 1 else "Mixed Crop"
                     layer.updateFeature(feature)

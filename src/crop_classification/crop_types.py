@@ -1,5 +1,5 @@
-def is_pure_crop(crop_name):
-    """Returns True if the crop is Pure Crop (Reinsaat), False if Mixed Crop (Mischsaat), -1 if unknown."""
+def is_single_crop(crop_name):
+    """Returns True if the crop is Single Crop (Reinsaat), False if Mixed Crop (Mischsaat), -1 if unknown."""
     return crop_types.get(crop_name, -1)
 
 crop_types = {
