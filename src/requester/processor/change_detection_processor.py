@@ -277,7 +277,7 @@ class ChangeDetectionProcessor(Processor):
             geom_gdf = gpd.GeoSeries([geom], crs="EPSG:4326").to_crs("EPSG:32633").iloc[0]
             bounds = geom_gdf.bounds
 
-            red_band, nir_band, green_band, blue_band = self.band_provider_mapping.get(self._collection) or self.band_provider_mapping[self._provider]
+            red_band, nir_band, green_band, blue_band = self.band_mapping.get(self._collection) or self.band_mapping[self._provider]
             red_url = selected_item.assets[red_band].href
             nir_url = selected_item.assets[nir_band].href
 

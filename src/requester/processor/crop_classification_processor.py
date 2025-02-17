@@ -239,7 +239,7 @@ class CropClassificationProcessor(Processor):
                 if field_id in self.invalid_fields:
                     continue
                 try:
-                    red_band, nir_band, green_band, blue_band = self.band_provider_mapping.get(self._collection) or self.band_provider_mapping[self._provider]
+                    red_band, nir_band, green_band, blue_band = self.band_mapping.get(self._collection) or self.band_mapping[self._provider]
                     red_url = item.assets[red_band].href
                     nir_url = item.assets[nir_band].href
                     green_url = item.assets[green_band].href

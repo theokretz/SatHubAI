@@ -40,6 +40,13 @@ class Processor(ABC):
         self.band_provider_mapping = {
             "landsat-c2-l2": ("red", "nir08"),
             "landsat-c2-l1": ("red", "nir08"),
+            self._provider.EARTH_SEARCH: ("red", "nir"),
+            self._provider.PLANETARY_COMPUTER: ("B04", "B08"),
+        }
+        #todo get all bands
+        self.band_mapping = {
+            "landsat-c2-l2": ("red", "nir08"),
+            "landsat-c2-l1": ("red", "nir08"),
             self._provider.EARTH_SEARCH: ("red", "nir", "green", "blue"),
             self._provider.PLANETARY_COMPUTER: ("B04", "B08", "B03", "B02"),
         }
@@ -244,7 +251,7 @@ class Processor(ABC):
                 for i in range(count):
                     dst.write(data[:, :, i], i + 1)
             else:
-                dst.write(src.read())
+                dst.write(data, 1)
 
     def create_temporary_file_multiple_bands(self, src, data, count, dytpe) -> str:
         """
@@ -265,9 +272,6 @@ class Processor(ABC):
         str
             Path to the temporary file.
         """
-        print(f"data: {type(data)}")
-        print(f"src: {type(src)}")
-
         with tempfile.NamedTemporaryFile(suffix=".tif", delete=False) as temp_file:
             self.write_bands_to_file(temp_file.name, src, data, count, dytpe)
             return temp_file.name
@@ -348,3 +352,8 @@ class Processor(ABC):
                     dst.write(ndvi.astype('float32'), 1)
                 if self._config.import_checked:
                     import_into_qgis(ndvi_path, "NDVI " + self._provider.plot_title + "-" + self._collection)
+
+            # just import no download
+            if self._config.import_checked and not self._config.download_checked:
+                filepath = self.create_temporary_file_multiple_bands(red_src, ndvi, 1, 'float32')
+                import_into_qgis(filepath, self._provider.qgis_layer_name + " " + self._collection + "-" + "NDVI")
