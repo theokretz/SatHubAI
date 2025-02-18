@@ -1,5 +1,6 @@
 # sentinel_hub_requester.py
 # credits: https://sentinelhub-py.readthedocs.io/en/latest/examples/process_request.html
+import logging
 import os
 import tarfile
 
@@ -24,8 +25,22 @@ from ..exceptions.missing_credentials_exception import MissingCredentialsExcepti
 from .requester import Requester
 from ..utils import import_into_qgis, display_error_message, display_warning_message
 
+logger = logging.getLogger("SatHubAI.SentinelHubRequester")
 
 class SentinelHubRequester(Requester):
+    """
+    Handles satellite data requests from Sentinel Hub.
+
+    Parameters
+    ----------
+    config : RequestConfig
+        Configuration containing user options for requesting data.
+
+    Raises
+    ------
+    MissingCredentialsException
+        If Sentinel Hub credentials are missing.
+    """
     def __init__(self, config):
         super().__init__(config)
         self.sh_config = SHConfig()
@@ -146,51 +161,154 @@ class SentinelHubRequester(Requester):
             }
         }
 
-    @staticmethod
-    def plot_image(image, title, band_name):
-        plt.figure()
-        if band_name == "NDVI":
-            plt.imshow(image, cmap="RdYlGn")
-            plt.colorbar()
+    def request_data(self):
+        """
+        Requests and retrieves satellite imagery from Sentinel Hub.
+
+        The function submits the request, retrieves the image,
+        and handles optional plotting, downloading, or QGIS importing based on user settings.
+
+        Raises
+        ------
+        ValueError
+            If an unsupported file type is specified.
+        """
+        # get selected file type, default is TIFF
+        mime_type = self.mime_type_mapping.get(self.config.selected_file_type, "TIFF")
+
+        # collection
+        if self.config.additional_options:
+            collection = self.collection_mapping.get(self.config.additional_options.collection)
+            collection_name = self.config.additional_options.collection
         else:
-            plt.imshow(image, cmap="gray")
-        plt.title(title)
-        plt.axis('off')
-        plt.show()
+            # default collection
+            collection = DataCollection.SENTINEL2_L2A
+            collection_name = "Sentinel-2 L2A"
 
-    @staticmethod
-    def import_into_qgis_without_download(image, size, bbox, title):
-        """load a satellite image into QGIS without downloading it first via temporary file."""
-
-        # determine the number of bands
-        if image.ndim == 2:  # single band image
-            count = 1
-            data = image[np.newaxis, ...] # add a new axis for the band dimension
-        elif image.ndim == 3:  # Multi-band image
-            count = image.shape[2]
-            data = image.transpose(2, 0, 1)  # transpose for rasterio (bands, rows, cols)
+        # bands - default is True Color
+        if self.config.additional_options:
+            # if nothing is selected, select default
+            if len(self.config.additional_options.bands) == 0:
+                if collection_name == "Landsat 1-5 MSS L1":
+                    bands = ["False Color"]
+                else:
+                    bands = ["True Color"]
+            else:
+                bands = self.config.additional_options.bands
         else:
-            raise ValueError(f"Unsupported image dimensions: {image.ndim}")
+            if collection_name == "Landsat 1-5 MSS L1":
+                bands = ["False Color"]
+            else:
+                bands = ["True Color"]
 
-        with tempfile.NamedTemporaryFile(suffix='.tif', delete=False) as tmp_file:
-            with rasterio.open(
-                    tmp_file.name, 'w',
-                    driver='GTiff',
-                    width=size[0],
-                    height=size[1],
-                    count=count,
-                    dtype=image.dtype,
-                    transform=from_bounds(bbox.lower_left[0], bbox.lower_left[1], bbox.upper_right[0], bbox.upper_right[1],
-                    width=size[0],
-                    height=size[1]),
-            ) as tmp_dataset:
-                tmp_dataset.write(data)
+        # evalscript
+        evalscript = self.generate_evalscript(bands, collection_name)
+        responses = self.generate_responses(bands, mime_type, collection_name)
 
-            import_into_qgis(tmp_file.name, title)
+        # resolution
+        resolution = self.resolution_mapping.get(collection)
 
+        # coords
+        coords = (self.config.coords[0].x(), self.config.coords[0].y(), self.config.coords[1].x(), self.config.coords[1].y())
+        bbox = BBox(bbox=coords, crs=CRS.WGS84)
+        size = bbox_to_dimensions(bbox, resolution=resolution)
+
+        request = SentinelHubRequest(
+            data_folder=self.config.download_directory,
+            evalscript=evalscript,
+            input_data=[
+                SentinelHubRequest.input_data(
+                    data_collection=collection,
+                    time_interval=(self.config.start_date, self.config.end_date),
+                    mosaicking_order=MosaickingOrder.LEAST_CC,
+                )
+            ],
+            responses=responses,
+            bbox=bbox,
+            size=size,
+            config=self.sh_config,
+        )
+
+        images = request.get_data()[0]
+
+        # if it is just a single image - transform it to dict
+        if isinstance(images, np.ndarray):
+            images = {"default": images}
+
+        # help counter to access bands array
+        count = 0
+        for filename, image in images.items():
+            band_name = bands[count]
+
+            # check if image is black/blank
+            if np.all(image == 0):
+                display_warning_message("The Satellite Image is blank." , "No Satellite Image!")
+                return
+
+            # check for import and no download
+            if self.config.import_checked and not self.config.download_checked:
+                self.import_into_qgis_without_download(image, size, bbox, f"Sentinel Hub {collection_name} - {band_name}")
+
+            if self.config.plot_checked:
+                self.plot_image(image, f"Sentinel Hub {collection_name} - {band_name}", band_name)
+
+            count += 1
+
+
+        # check for download
+        if self.config.download_checked:
+            image_download = request.get_data(save_data=True)
+            image = image_download[0]
+            if not image_download:
+                logger.warning("Image download failed!")
+                display_error_message("Image download failed!")
+
+            # check for import
+            if self.config.import_checked:
+                # get path to file
+                filename_list = request.get_filename_list()
+                filename = filename_list[0]
+                file_path = os.path.join(self.config.download_directory, filename)
+
+                # .tar directory gets created for multiple images
+                if len(bands) > 1:
+                    extract_directory = os.path.dirname(file_path)
+
+                    # extract images
+                    with tarfile.open(file_path, "r") as tar:
+                        tar.extractall(path=extract_directory)
+
+                        for file in os.listdir(extract_directory):
+                            if self.config.selected_file_type == "TIFF":
+                                file_ending = ".tif"
+                            elif self.config.selected_file_type == "JPEG":
+                                file_ending = ".jpg"
+                            elif self.config.selected_file_type == "PNG":
+                                file_ending = ".png"
+                            else:
+                                raise ValueError(f"Unsupported file type: {self.config.selected_file_type}")
+
+                            # go through all files and import into qgis
+                            if file.endswith(file_ending):
+                                full_path = os.path.join(extract_directory, file)
+                                import_into_qgis(full_path, f"Sentinel Hub {collection_name} - {file}")
 
     def generate_evalscript(self, bands, collection_name):
-        """generates an evalscript"""
+        """
+        Generates an evalscript for Sentinel Hub Process API requests.
+
+        Parameters
+        ----------
+        bands : list
+           List of band names to request.
+        collection_name : str
+           The name of the satellite collection.
+
+        Returns
+        -------
+        str
+           A formatted evalscript for Sentinel Hub Process API.
+        """
         input_bands = set()
         outputs = []
         evaluations = []
@@ -300,126 +418,57 @@ class SentinelHubRequester(Requester):
 
         return responses
 
-    def request_data(self):
-        """request true color image from Sentinel Hub, without clouds if time frame is at least a month"""
 
-        # get selected file type, default is TIFF
-        mime_type = self.mime_type_mapping.get(self.config.selected_file_type, "TIFF")
+    @staticmethod
+    def plot_image(image, title, band_name):
+        """
+        Plots an image with matplotlib.
 
-        # collection
-        if self.config.additional_options:
-            collection = self.collection_mapping.get(self.config.additional_options.collection)
-            collection_name = self.config.additional_options.collection
+        Parameters
+        ----------
+        image : np.ndarray
+           The image data to plot.
+        title : str
+           Title of the plot.
+        band_name : str
+           Name of the band being visualized.
+        """
+        plt.figure()
+        if band_name == "NDVI":
+            plt.imshow(image, cmap="RdYlGn")
+            plt.colorbar()
         else:
-            # default collection
-            collection = DataCollection.SENTINEL2_L1C
-            collection_name = "Sentinel-2 L1C"
+            plt.imshow(image, cmap="gray")
+        plt.title(title)
+        plt.axis('off')
+        plt.show()
 
-        # bands - default is True Color
-        if self.config.additional_options:
-            # if nothing is selected, select default
-            if len(self.config.additional_options.bands) == 0:
-                if collection_name == "Landsat 1-5 MSS L1":
-                    bands = ["False Color"]
-                else:
-                    bands = ["True Color"]
-            else:
-                bands = self.config.additional_options.bands
+    @staticmethod
+    def import_into_qgis_without_download(image, size, bbox, title):
+        """load a satellite image into QGIS without downloading it first via temporary file."""
+
+        # determine the number of bands
+        if image.ndim == 2:  # single band image
+            count = 1
+            data = image[np.newaxis, ...] # add a new axis for the band dimension
+        elif image.ndim == 3:  # Multi-band image
+            count = image.shape[2]
+            data = image.transpose(2, 0, 1)  # transpose for rasterio (bands, rows, cols)
         else:
-            if collection_name == "Landsat 1-5 MSS L1":
-                bands = ["False Color"]
-            else:
-                bands = ["True Color"]
+            raise ValueError(f"Unsupported image dimensions: {image.ndim}")
 
-        # evalscript
-        evalscript = self.generate_evalscript(bands, collection_name)
-        responses = self.generate_responses(bands, mime_type, collection_name)
+        with tempfile.NamedTemporaryFile(suffix='.tif', delete=False) as tmp_file:
+            with rasterio.open(
+                    tmp_file.name, 'w',
+                    driver='GTiff',
+                    width=size[0],
+                    height=size[1],
+                    count=count,
+                    dtype=image.dtype,
+                    transform=from_bounds(bbox.lower_left[0], bbox.lower_left[1], bbox.upper_right[0], bbox.upper_right[1],
+                    width=size[0],
+                    height=size[1]),
+            ) as tmp_dataset:
+                tmp_dataset.write(data)
 
-        # resolution
-        resolution = self.resolution_mapping.get(collection)
-
-        # coords
-        coords = (self.config.coords[0].x(), self.config.coords[0].y(), self.config.coords[1].x(), self.config.coords[1].y())
-        bbox = BBox(bbox=coords, crs=CRS.WGS84)
-        size = bbox_to_dimensions(bbox, resolution=resolution)
-
-
-        request_true_color = SentinelHubRequest(
-            data_folder=self.config.download_directory,
-            evalscript=evalscript,
-            input_data=[
-                SentinelHubRequest.input_data(
-                    data_collection=collection,
-                    time_interval=(self.config.start_date, self.config.end_date),
-                    mosaicking_order=MosaickingOrder.LEAST_CC,
-                )
-            ],
-            responses=responses,
-            bbox=bbox,
-            size=size,
-            config=self.sh_config,
-        )
-
-        images = request_true_color.get_data()[0]
-
-        # if it is just a single image - transform it to dict
-        if isinstance(images, np.ndarray):
-            images = {"default": images}
-
-        # help counter to access bands array
-        count = 0
-        for filename, image in images.items():
-            band_name = bands[count]
-
-            # check if image is black/blank
-            if np.all(image == 0):
-                display_warning_message("The Satellite Image is blank." , "No Satellite Image!")
-                return
-
-            # check for import and no download
-            if self.config.import_checked and not self.config.download_checked:
-                self.import_into_qgis_without_download(image, size, bbox, f"Sentinel Hub {collection_name} - {band_name}")
-
-            if self.config.plot_checked:
-                self.plot_image(image, f"Sentinel Hub {collection_name} - {band_name}", band_name)
-
-            count += 1
-
-
-        # check for download
-        if self.config.download_checked:
-            image_download = request_true_color.get_data(save_data=True)
-            image = image_download[0]
-            if not image_download:
-                QgsMessageLog.logMessage("Image download failed!", level=Qgis.Critical)
-                display_error_message("Image download failed!")
-
-            # check for import
-            if self.config.import_checked:
-                # get path to file
-                filename_list = request_true_color.get_filename_list()
-                filename = filename_list[0]
-                file_path = os.path.join(self.config.download_directory, filename)
-
-                # .tar directory gets created for multiple images
-                if len(bands) > 1:
-                    extract_directory = os.path.dirname(file_path)
-
-                    # extract images
-                    with tarfile.open(file_path, "r") as tar:
-                        tar.extractall(path=extract_directory)
-
-                        for file in os.listdir(extract_directory):
-                            if self.config.selected_file_type == "TIFF":
-                                file_ending = ".tif"
-                            elif self.config.selected_file_type == "JPEG":
-                                file_ending = ".jpg"
-                            elif self.config.selected_file_type == "PNG":
-                                file_ending = ".png"
-                            else:
-                                raise ValueError(f"Unsupported file type: {self.config.selected_file_type}")
-
-                            # go through all files and import into qgis
-                            if file.endswith(file_ending):
-                                full_path = os.path.join(extract_directory, file)
-                                import_into_qgis(full_path, f"Sentinel Hub {collection_name} - {file}")
+            import_into_qgis(tmp_file.name, title)
