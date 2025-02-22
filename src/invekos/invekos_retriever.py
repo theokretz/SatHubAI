@@ -1,4 +1,4 @@
-
+# invekos_retriever.py
 from qgis.core import (
     QgsVectorLayer,
     QgsProject,
@@ -24,17 +24,69 @@ from PyQt5.QtGui import QColor
 import logging
 from datetime import datetime
 
-logger = logging.getLogger("SatHubAI.LoadInvekosData")
-logger.propagate = True
+logger = logging.getLogger("SatHubAI.InvekosRetriever")
 
-
-class LoadInvekosData:
+class InvekosRetriever:
     def __init__(self):
         self.base_url = "https://gis.lfrz.gv.at/api/geodata/i009501/ogc/features/v1/collections/"
         self.full_url = None
 
+    def request_invekos_data(self, coords, start_date, end_date):
+        """
+        Request INVEKOS data for a specified area and time period.
+
+        Parameters
+        ----------
+        coords : list or tuple
+            Bounding box coordinates [minx, miny, maxx, maxy]
+        start_date : PyQt5.QtCore.QDate
+            Start date for the data request
+        end_date : PyQt5.QtCore.QDate
+            End date for the data request
+
+        Raises
+        ------
+        RequestException
+            If the API request fails after all retries
+        """
+
+        end_dateset = self._get_invekos_dataset(end_date)
+        self.full_url = self.base_url + end_dateset + "/items"
+        start_dataset = self._get_invekos_dataset(start_date)
+
+        if start_dataset != end_dateset:
+            logger.warning(
+                f"Warning: Your date range ({start_date.toString('yyyy-MM-dd')} to "
+                f"{end_date.toString('yyyy-MM-dd')}) spans multiple datasets. "
+                f"Using the most recent dataset from ({end_dateset})."
+            )
+
+        bbox = calculate_bbox(coords)
+        max_workers = os.cpu_count() * 2
+
+        # fetch all features within the bounding box with pagination
+        all_features = self._fetch_all_with_pagination(bbox, limit=100, max_workers=max_workers)
+
+        if not all_features:
+            logger.error("No data available for requested time range")
+            raise
+
+        logger.info(f"Total Invekos features fetched: {len(all_features)}")
+
+        # save as GeoJSON
+        geojson_data = {
+            "type": "FeatureCollection",
+            "features": all_features
+        }
+
+        file_name = f'invekos_{end_dateset}_{datetime.now().strftime("%Y%m%d_%H%M%S")}.geojson'
+        with open(file_name, "w", encoding="utf-8") as f:
+            json.dump(geojson_data, f, ensure_ascii=False, indent=2)
+
+        self._add_layer_to_qgis(file_name, f'INVEKOS Layer {end_dateset}')
+
     @staticmethod
-    def get_invekos_dataset(date):
+    def _get_invekos_dataset(date):
         """
         Determine the appropriate INVEKOS dataset identifier for a given date.
 
@@ -60,9 +112,11 @@ class LoadInvekosData:
 
         # there is no INVEKOS Schläge data available before 30.6.2015
         if year < 2015:
-            raise ValueError(f"No data available for year {year}. Available data starting from July 2015")
+            logger.warning(f"No data available for year {year}. Available data starting from July 2015, this data is being used.")
+            return f"i009501:invekos_schlaege_2015_polygon"
         elif year == 2015 and month <= 6:
-            raise ValueError(f"No data available for year {year}. Available data starting from July 2015")
+            logger.warning(f"No data available for year {year}. Available data starting from July 2015,, this data is being used.")
+            return f"i009501:invekos_schlaege_2015_polygon"
 
         # before 2022 a year ranged from 30.6.2015-30.6.2016
         if year < 2022:
@@ -83,64 +137,8 @@ class LoadInvekosData:
             return f"i009501:invekos_schlaege_{year - 1}_2_polygon"
         return f"i009501:invekos_schlaege_{year}_1_polygon"
 
-    def request_invekos_data(self, coords, start_date, end_date):
-        """
-        Request INVEKOS data for a specified area and time period.
 
-        Parameters
-        ----------
-        coords : list or tuple
-            Bounding box coordinates [minx, miny, maxx, maxy]
-        start_date : PyQt5.QtCore.QDate
-            Start date for the data request
-        end_date : PyQt5.QtCore.QDate
-            End date for the data request
-
-        Raises
-        ------
-        RequestException
-            If the API request fails after all retries
-        """
-
-        end_dateset = self.get_invekos_dataset(end_date)
-        self.full_url = self.base_url + end_dateset + "/items"
-        start_dataset = self.get_invekos_dataset(start_date)
-
-        if start_dataset != end_dateset:
-            logger.warning(
-                f"Warning: Your date range ({start_date.toString('yyyy-MM-dd')} to "
-                f"{end_date.toString('yyyy-MM-dd')}) spans multiple datasets. "
-                f"Using the most recent dataset from ({end_dateset}), but some data might "
-                f"come from a different period ({start_dataset})."
-            )
-
-        bbox = calculate_bbox(coords)
-        print(os.cpu_count() * 4)
-        max_workers = os.cpu_count() * 2
-        logger.info(f"Using {max_workers} workers for fetching data...")
-
-        # fetch all features within the bounding box with pagination
-        all_features = self.fetch_all_with_pagination(bbox, limit=100, max_workers=max_workers)
-
-        if not all_features:
-            logger.error("No data available for requested time range")
-            raise
-
-        logger.info(f"Total features fetched: {len(all_features)}")
-
-        # Save as GeoJSON
-        geojson_data = {
-            "type": "FeatureCollection",
-            "features": all_features
-        }
-
-        file_name = f'invekos_{end_dateset}_{datetime.now().strftime("%Y%m%d_%H%M%S")}.geojson'
-        with open(file_name, "w", encoding="utf-8") as f:
-            json.dump(geojson_data, f, ensure_ascii=False, indent=2)
-
-        self.add_layer_to_qgis(file_name, f'INVEKOS Layer {end_dateset}')
-
-    def add_layer_to_qgis(self, filepath, layer_name):
+    def _add_layer_to_qgis(self, filepath, layer_name):
         """
         Adds a GeoJSON file as a layer in QGIS and assigns each unique crop type a color.
 
@@ -162,13 +160,13 @@ class LoadInvekosData:
         layer.setDisplayExpression(expression)
 
         # apply unique colors to each crop type
-        self.apply_unique_colors(layer)
+        self._apply_unique_colors(layer)
 
         QgsProject.instance().addMapLayer(layer)
-        logger.info(f"Layer added to QGIS: {layer_name}")
+        logger.info(f"Invekos layer added to QGIS: {layer_name}")
 
     @staticmethod
-    def apply_unique_colors(layer):
+    def _apply_unique_colors(layer):
         """
         Apply unique random colors to different crop types (snar_bezeichnung).
 
@@ -191,7 +189,7 @@ class LoadInvekosData:
         renderer = QgsCategorizedSymbolRenderer("snar_bezeichnung", categories)
         layer.setRenderer(renderer)
 
-    def fetch_items(self, bbox, start_index, limit, retries=3, delay=2):
+    def _fetch_items(self, bbox, start_index, limit, retries=3, delay=2):
         """
         Fetch items within the bounding box (bbox) and pagination startIndex.
 
@@ -234,7 +232,7 @@ class LoadInvekosData:
         logger.error(f"Failed to fetch data after {retries} retries (startIndex={start_index}).")
         return []
 
-    def fetch_all_with_pagination(self, bbox, limit=100, max_workers=5):
+    def _fetch_all_with_pagination(self, bbox, limit=100, max_workers=5):
         """
         Fetch all items within the bounding box (bbox) using concurrency and pagination.
 
@@ -253,7 +251,7 @@ class LoadInvekosData:
 
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             while True:
-                future = executor.submit(self.fetch_items, bbox, start_index, limit)
+                future = executor.submit(self._fetch_items, bbox, start_index, limit)
                 futures.append(future)
                 start_index += limit
 

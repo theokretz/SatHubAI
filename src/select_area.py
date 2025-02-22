@@ -10,51 +10,51 @@ class SelectArea(QgsMapToolEmitPoint):
 
     def __init__(self, canvas):
         QgsMapToolEmitPoint.__init__(self, canvas)
-        self.canvas = canvas
-        self.rubber_band = None
-        self.origin = None
+        self._canvas = canvas
+        self._rubber_band = None
+        self._origin = None
 
     def canvasPressEvent(self, event):
         """mouse press event - triggers when the mouse button is pressed"""
         # set origin/first point and convert into coordinates
-        self.origin = self.toMapCoordinates(event.pos())
+        self._origin = self.toMapCoordinates(event.pos())
 
-        if not self.rubber_band:
+        if not self._rubber_band:
             # create rubberband for drawing a rectangle
-            self.rubber_band = QgsRubberBand(self.canvas, QgsWkbTypes.PolygonGeometry)
-            self.rubber_band.setWidth(3)
-            self.rubber_band.setColor(Qt.red)
-            self.rubber_band.setFillColor(Qt.transparent)
+            self._rubber_band = QgsRubberBand(self._canvas, QgsWkbTypes.PolygonGeometry)
+            self._rubber_band.setWidth(3)
+            self._rubber_band.setColor(Qt.red)
+            self._rubber_band.setFillColor(Qt.transparent)
 
 
     def canvasMoveEvent(self, event):
         """mouse move event - triggers when mouse is moved while mouse button is pressed"""
-        if self.rubber_band and self.origin:
+        if self._rubber_band and self._origin:
             # clear any previous rubberband points
-            self.rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+            self._rubber_band.reset(QgsWkbTypes.PolygonGeometry)
 
             # converts current mouse position into coordinates
             point = self.toMapCoordinates(event.pos())
 
             # drawing the rectangle/set points in rubberband
-            self.rubber_band.addPoint(self.origin, False)   # update = False
-            self.rubber_band.addPoint(QgsPointXY(point.x(), self.origin.y()), False)
-            self.rubber_band.addPoint(point, False)
-            self.rubber_band.addPoint(QgsPointXY(self.origin.x(), point.y()), True)  # update = True
-            self.rubber_band.show()
+            self._rubber_band.addPoint(self._origin, False)   # update = False
+            self._rubber_band.addPoint(QgsPointXY(point.x(), self._origin.y()), False)
+            self._rubber_band.addPoint(point, False)
+            self._rubber_band.addPoint(QgsPointXY(self._origin.x(), point.y()), True)  # update = True
+            self._rubber_band.show()
 
 
     def canvasReleaseEvent(self, event):
         """mouse release event - triggers when mouse button is released"""
-        if self.rubber_band and self.origin:
+        if self._rubber_band and self._origin:
             try:
                 # collect the coordinates from rubberband
                 coords = [
                     # 0 - The geometry index
-                    self.rubber_band.getPoint(0, 0),  # top-left
-                    self.rubber_band.getPoint(0, 1),  # top-right
-                    self.rubber_band.getPoint(0, 2),  # bottom-right
-                    self.rubber_band.getPoint(0, 3)   # bottom-left
+                    self._rubber_band.getPoint(0, 0),  # top-left
+                    self._rubber_band.getPoint(0, 1),  # top-right
+                    self._rubber_band.getPoint(0, 2),  # bottom-right
+                    self._rubber_band.getPoint(0, 3)   # bottom-left
                 ]
 
                 # check for invalid coordinates
@@ -67,6 +67,6 @@ class SelectArea(QgsMapToolEmitPoint):
                 display_warning_message("Please click and drag to select an area on the map.", "No area selected.")
 
             # reset the rubberband and origin
-            self.rubber_band.reset(QgsWkbTypes.PolygonGeometry)
-            self.origin = None
+            self._rubber_band.reset(QgsWkbTypes.PolygonGeometry)
+            self._origin = None
 

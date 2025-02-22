@@ -22,10 +22,10 @@ class StacRequester(Requester):
 
     def __init__(self, config, provider, invekos_manager=None):
         super().__init__(config)
-        self.config = config
-        self.provider = provider
-        self.collection = None
-        self.invekos_manager = invekos_manager
+        self._config = config
+        self._provider = provider
+        self._collection = None
+        self._invekos_manager = invekos_manager
 
 
     def request_data(self):
@@ -37,24 +37,24 @@ class StacRequester(Requester):
         None
             Processes data through selected processor
         """
-        catalog = Provider.get_client(self.provider)
+        catalog = Provider.get_client(self._provider)
 
-        bbox = calculate_bbox(self.config.coords)
+        bbox = calculate_bbox(self._config.coords)
 
-        if self.config.additional_options:
-            self.collection =  self.collection_mapping.get(self.config.additional_options.collection)
+        if self._config.additional_options:
+            self._collection =  self.collection_mapping.get(self._config.additional_options._collection)
         else:
-            self.collection = "sentinel-2-l2a"
+            self._collection = "sentinel-2-l2a"
 
         # Prepare search parameters
         search_params = {
-            "collections": self.collection,
+            "collections": self._collection,
             "bbox": bbox,
-            "datetime": f"{self.config.start_date}/{self.config.end_date}",
+            "datetime": f"{self._config.start_date}/{self._config.end_date}",
         }
 
         # add query parameter only if supported - only supported in sentinel-2-l2a collection
-        if self.collection == "sentinel-2-l2a":
+        if self._collection == "sentinel-2-l2a":
             search_params["query"] = {
                 "eo:cloud_cover": {"lt": 10},
                 "s2:nodata_pixel_percentage": {"lt": 1},
@@ -63,10 +63,10 @@ class StacRequester(Requester):
             search_params["query"] = {
                 "eo:cloud_cover": {"lt": 10},
             }
-
+        print(search_params)
         search = catalog.search(**search_params)
         items = search.item_collection()
-
+        print(items)
         logger.info(f"Found {len(items)} images")
 
         if not items:
@@ -75,7 +75,7 @@ class StacRequester(Requester):
             return
 
         # create processor
-        processor = ProcessorFactory.create_processor(self.config, self.provider, self.collection, self.invekos_manager)
+        processor = ProcessorFactory.create_processor(self._config, self._provider, self._collection, self._invekos_manager)
 
         # For change detection and crop classification, use all items
         if isinstance(processor, ChangeDetectionProcessor) or isinstance(processor, CropClassificationProcessor):
@@ -88,7 +88,7 @@ class StacRequester(Requester):
 
     def request_multiple_images(self, catalog):
         """Needed for TrainingDataProcessor"""
-        minx, miny, maxx, maxy = calculate_bbox(self.config.coords)
+        minx, miny, maxx, maxy = calculate_bbox(self._config.coords)
 
         # define the max tile size
         TILE_SIZE = 1.0
@@ -109,12 +109,12 @@ class StacRequester(Requester):
 
                 logger.info(f"Requesting data for sub-BBOX: {sub_bbox}")
                 search_params = {
-                    "collections": self.collection,
+                    "collections": self._collection,
                     "bbox": sub_bbox,
-                    "datetime": f"{self.config.start_date}/{self.config.end_date}",
+                    "datetime": f"{self._config.start_date}/{self._config.end_date}",
                 }
                 # add query parameter only if supported - only supported in sentinel-2-l2a collection
-                if self.collection == "sentinel-2-l2a":
+                if self._collection == "sentinel-2-l2a":
                     search_params["query"] = {
                         "eo:cloud_cover": {"lt": 10},
                         "s2:nodata_pixel_percentage": {"lt": 1},

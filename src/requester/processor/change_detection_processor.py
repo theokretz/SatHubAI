@@ -14,7 +14,7 @@ from rasterio.features import geometry_mask
 import json
 from shapely.io import from_geojson
 import geopandas as gpd
-from .base_processor import Processor
+from .processor import Processor
 from qgis.core import (
     QgsVectorLayer,
     QgsProject,

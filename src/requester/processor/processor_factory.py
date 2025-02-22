@@ -3,13 +3,16 @@ processor_factory
 =================
 Defines the ProcessorFactory class for creating processor instances based on satellite data collections.
 """
-from .base_processor import Processor
+from .processor import Processor
 from .change_detection_processor import ChangeDetectionProcessor
 from .crop_classification_processor import CropClassificationProcessor
 from .landsat_processor import LandsatProcessor
 from .sentinel_processor import SentinelProcessor
 from ..request_config import RequestConfig
 from qgis._core import QgsMessageLog, Qgis
+import logging
+
+logger = logging.getLogger("SatHubAI.ProcessorFactory")
 
 class ProcessorFactory:
     """A factory class to create processor instances for handling satellite data collections."""
@@ -45,17 +48,19 @@ class ProcessorFactory:
         """
         if config.change_detection:
             if not invekos_manager:
+                logger.error("InvekosManager required for change detection")
                 raise ValueError("InvekosManager required for change detection")
             return ChangeDetectionProcessor(config, provider, collection, invekos_manager)
 
         if config.crop_classification:
             if not invekos_manager:
-                raise ValueError("InvekosManager required for crop detection")
+                logger.error("InvekosManager required for crop classification")
+                raise ValueError("InvekosManager required for crop classification")
             return CropClassificationProcessor(config, provider, collection, invekos_manager)
 
         # go through the mapping and find the correct processor class
         for key, processor_class in ProcessorFactory._collection_processor_mapping.items():
             if collection.startswith(key):
                 return processor_class(config, provider, collection)
-        QgsMessageLog.logMessage(f"Unsupported collection: {collection}", level=Qgis.Critical)
+        logger.error(f"Unsupported collection: {collection}")
         raise ValueError(f"Unsupported collection: {collection}")

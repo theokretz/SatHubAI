@@ -21,7 +21,7 @@ from pathlib import Path
 from ...crop_classification.crop_types import is_single_crop
 import pandas as pd
 import geopandas as gpd
-from .base_processor import Processor
+from .processor import Processor
 from scipy.stats import kurtosis, skew
 
 logger = logging.getLogger("SatHubAI.CropClassificationProcessor")

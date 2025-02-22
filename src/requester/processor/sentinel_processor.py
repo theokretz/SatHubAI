@@ -3,17 +3,18 @@ base_processor
 =================
 Defines the SentinelProcessor class for handling Sentinel data from Planetary Computer and Earth Search.
 """
-
+import logging
 import tempfile
 import numpy as np
 import stackstac
-from .base_processor import Processor
+from .processor import Processor
 from ...utils import import_into_qgis
 import rasterio.features
 import matplotlib.pyplot as plt
 import os
 import rioxarray
 
+logger = logging.getLogger("SatHubAI.SentinelProcessor")
 
 class SentinelProcessor(Processor):
     """

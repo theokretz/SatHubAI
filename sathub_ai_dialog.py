@@ -27,7 +27,7 @@ import os
 from .src.invekos.invekos_manager import InvekosManager
 from .src.logger_setup import setup_logging
 from .src.utils import display_error_message
-from .src.invekos.load_invekos_data import LoadInvekosData
+from .src.invekos.invekos_retriever import InvekosRetriever
 from .src.requester.stac_requester import StacRequester
 from .src.options_dialog.options_dialog import OptionsDialog
 from .src.requester.request_config import RequestConfig
@@ -110,14 +110,14 @@ class SatHubAIDialog(QDockWidget, FORM_CLASS):
 
     def handle_additional_options(self, options_config):
         """handles the additional options set in the options dialog"""
-        if options_config.provider == "PLANETARY_COMPUTER":
+        if options_config._provider == "PLANETARY_COMPUTER":
             self.additional_options_planetary_computer = options_config
-        elif options_config.provider == "EARTH_SEARCH":
+        elif options_config._provider == "EARTH_SEARCH":
             self.additional_options_earth_search = options_config
-        elif options_config.provider ==  "SENTINEL_HUB":
+        elif options_config._provider == "SENTINEL_HUB":
             self.additional_options_sentinel_hub = options_config
         else:
-            raise ValueError(f"Unsupported provider: {options_config.provider}")
+            raise ValueError(f"Unsupported provider: {options_config._provider}")
 
     def on_fw_get_directory_clicked(self):
         self.download_directory = self.fwGetDirectory.filePath()

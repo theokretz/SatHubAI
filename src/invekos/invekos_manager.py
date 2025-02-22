@@ -6,7 +6,7 @@ Manages INVEKOS data loading and integration with satellite data processing.
 
 from typing import Optional, Tuple
 from qgis.core import QgsVectorLayer, QgsProject
-from .load_invekos_data import LoadInvekosData
+from .invekos_retriever import InvekosRetriever
 import logging
 
 logger = logging.getLogger("SatHubAI.InvekosManager")
@@ -18,8 +18,8 @@ class InvekosManager:
     """
 
     def __init__(self):
-        self.loader = LoadInvekosData()
-        self.current_layer = None
+        self._retriever = InvekosRetriever()
+        self._current_layer = None
         self._bbox = None
 
     def load_invekos_data(self, coords: Tuple[float, float], start_date, end_date) -> Optional[QgsVectorLayer]:
@@ -40,23 +40,23 @@ class InvekosManager:
             QgsVectorLayer if successful, None otherwise
         """
         try:
-            # Store bbox for later use
+            # store bbox for later use
             self._bbox = coords
 
-            # Load data using existing LoadInvekosData class
-            self.loader.request_invekos_data(coords, start_date, end_date)
+            # load data using InvekosRetriever class
+            self._retriever.request_invekos_data(coords, start_date, end_date)
 
-            # Get the layer that was just added
-            self.current_layer = self.find_invekos_layer()
+            # get the layer that was just added
+            self._current_layer = self._find_invekos_layer()
 
-            return self.current_layer
+            return self._current_layer
 
         except Exception as e:
             logger.error(f"Failed to load INVEKOS data: {str(e)}")
             return None
 
     @staticmethod
-    def find_invekos_layer() -> Optional[QgsVectorLayer]:
+    def _find_invekos_layer() -> Optional[QgsVectorLayer]:
         """
         Finds the most recently added INVEKOS layer in the QGIS project.
 
@@ -77,9 +77,9 @@ class InvekosManager:
         -------
             QgsVectorLayer if successful, None otherwise
         """
-        if self.current_layer and self.current_layer.isValid():
-            return self.current_layer
+        if self._current_layer and self._current_layer.isValid():
+            return self._current_layer
 
         # try to find layer if not set
-        self.current_layer = self.find_invekos_layer()
-        return self.current_layer
+        self._current_layer = self._find_invekos_layer()
+        return self._current_layer

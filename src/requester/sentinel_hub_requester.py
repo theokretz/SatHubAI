@@ -43,10 +43,10 @@ class SentinelHubRequester(Requester):
     """
     def __init__(self, config):
         super().__init__(config)
-        self.sh_config = SHConfig()
-        self.config = config
+        self._sh_config = SHConfig()
+        self._config = config
 
-        if not self.sh_config.sh_client_id or not self.sh_config.sh_client_secret:
+        if not self._sh_config.sh_client_id or not self._sh_config.sh_client_secret:
             raise MissingCredentialsException("Error! To use Process API, please provide the credentials (OAuth client ID and client secret).")
 
         self.resolution_mapping = {
@@ -174,27 +174,27 @@ class SentinelHubRequester(Requester):
             If an unsupported file type is specified.
         """
         # get selected file type, default is TIFF
-        mime_type = self.mime_type_mapping.get(self.config.selected_file_type, "TIFF")
+        mime_type = self.mime_type_mapping.get(self._config.selected_file_type, "TIFF")
 
         # collection
-        if self.config.additional_options:
-            collection = self.collection_mapping.get(self.config.additional_options.collection)
-            collection_name = self.config.additional_options.collection
+        if self._config.additional_options:
+            collection = self.collection_mapping.get(self._config.additional_options._collection)
+            collection_name = self._config.additional_options._collection
         else:
             # default collection
             collection = DataCollection.SENTINEL2_L2A
             collection_name = "Sentinel-2 L2A"
 
         # bands - default is True Color
-        if self.config.additional_options:
+        if self._config.additional_options:
             # if nothing is selected, select default
-            if len(self.config.additional_options.bands) == 0:
+            if len(self._config.additional_options.bands) == 0:
                 if collection_name == "Landsat 1-5 MSS L1":
                     bands = ["False Color"]
                 else:
                     bands = ["True Color"]
             else:
-                bands = self.config.additional_options.bands
+                bands = self._config.additional_options.bands
         else:
             if collection_name == "Landsat 1-5 MSS L1":
                 bands = ["False Color"]
@@ -202,31 +202,31 @@ class SentinelHubRequester(Requester):
                 bands = ["True Color"]
 
         # evalscript
-        evalscript = self.generate_evalscript(bands, collection_name)
+        evalscript = self._generate_evalscript(bands, collection_name)
         responses = self.generate_responses(bands, mime_type, collection_name)
 
         # resolution
         resolution = self.resolution_mapping.get(collection)
 
         # coords
-        coords = (self.config.coords[0].x(), self.config.coords[0].y(), self.config.coords[1].x(), self.config.coords[1].y())
+        coords = (self._config.coords[0].x(), self._config.coords[0].y(), self._config.coords[1].x(), self._config.coords[1].y())
         bbox = BBox(bbox=coords, crs=CRS.WGS84)
         size = bbox_to_dimensions(bbox, resolution=resolution)
 
         request = SentinelHubRequest(
-            data_folder=self.config.download_directory,
+            data_folder=self._config.download_directory,
             evalscript=evalscript,
             input_data=[
                 SentinelHubRequest.input_data(
                     data_collection=collection,
-                    time_interval=(self.config.start_date, self.config.end_date),
+                    time_interval=(self._config.start_date, self._config.end_date),
                     mosaicking_order=MosaickingOrder.LEAST_CC,
                 )
             ],
             responses=responses,
             bbox=bbox,
             size=size,
-            config=self.sh_config,
+            config=self._sh_config,
         )
 
         images = request.get_data()[0]
@@ -246,17 +246,17 @@ class SentinelHubRequester(Requester):
                 return
 
             # check for import and no download
-            if self.config.import_checked and not self.config.download_checked:
-                self.import_into_qgis_without_download(image, size, bbox, f"Sentinel Hub {collection_name} - {band_name}")
+            if self._config.import_checked and not self._config.download_checked:
+                self._import_into_qgis_without_download(image, size, bbox, f"Sentinel Hub {collection_name} - {band_name}")
 
-            if self.config.plot_checked:
-                self.plot_image(image, f"Sentinel Hub {collection_name} - {band_name}", band_name)
+            if self._config.plot_checked:
+                self._plot_image(image, f"Sentinel Hub {collection_name} - {band_name}", band_name)
 
             count += 1
 
 
         # check for download
-        if self.config.download_checked:
+        if self._config.download_checked:
             image_download = request.get_data(save_data=True)
             image = image_download[0]
             if not image_download:
@@ -264,11 +264,11 @@ class SentinelHubRequester(Requester):
                 display_error_message("Image download failed!")
 
             # check for import
-            if self.config.import_checked:
+            if self._config.import_checked:
                 # get path to file
                 filename_list = request.get_filename_list()
                 filename = filename_list[0]
-                file_path = os.path.join(self.config.download_directory, filename)
+                file_path = os.path.join(self._config.download_directory, filename)
 
                 # .tar directory gets created for multiple images
                 if len(bands) > 1:
@@ -279,21 +279,21 @@ class SentinelHubRequester(Requester):
                         tar.extractall(path=extract_directory)
 
                         for file in os.listdir(extract_directory):
-                            if self.config.selected_file_type == "TIFF":
+                            if self._config.selected_file_type == "TIFF":
                                 file_ending = ".tif"
-                            elif self.config.selected_file_type == "JPEG":
+                            elif self._config.selected_file_type == "JPEG":
                                 file_ending = ".jpg"
-                            elif self.config.selected_file_type == "PNG":
+                            elif self._config.selected_file_type == "PNG":
                                 file_ending = ".png"
                             else:
-                                raise ValueError(f"Unsupported file type: {self.config.selected_file_type}")
+                                raise ValueError(f"Unsupported file type: {self._config.selected_file_type}")
 
                             # go through all files and import into qgis
                             if file.endswith(file_ending):
                                 full_path = os.path.join(extract_directory, file)
                                 import_into_qgis(full_path, f"Sentinel Hub {collection_name} - {file}")
 
-    def generate_evalscript(self, bands, collection_name):
+    def _generate_evalscript(self, bands, collection_name):
         """
         Generates an evalscript for Sentinel Hub Process API requests.
 
@@ -314,7 +314,7 @@ class SentinelHubRequester(Requester):
         evaluations = []
 
         count = 0
-        if self.config.additional_options and self.config.additional_options.ndvi_checked and not "NDVI" in bands:
+        if self._config.additional_options and self._config.additional_options.ndvi_checked and not "NDVI" in bands:
             bands.append("NDVI")
 
 
@@ -420,7 +420,7 @@ class SentinelHubRequester(Requester):
 
 
     @staticmethod
-    def plot_image(image, title, band_name):
+    def _plot_image(image, title, band_name):
         """
         Plots an image with matplotlib.
 
@@ -444,7 +444,7 @@ class SentinelHubRequester(Requester):
         plt.show()
 
     @staticmethod
-    def import_into_qgis_without_download(image, size, bbox, title):
+    def _import_into_qgis_without_download(image, size, bbox, title):
         """load a satellite image into QGIS without downloading it first via temporary file."""
 
         # determine the number of bands

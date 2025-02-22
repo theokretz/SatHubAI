@@ -4,7 +4,7 @@ landsat_processor
 Defines the LandsatProcessor class for handling Landsat data from Planetary Computer and Earth Search.
 """
 
-from .base_processor import Processor
+from .processor import Processor
 import os
 import rasterio.features
 import matplotlib.pyplot as plt
