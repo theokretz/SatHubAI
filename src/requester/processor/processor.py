@@ -320,11 +320,11 @@ class Processor(ABC):
             raise NDVICalculationError("NDVI can not be calculated for this asset.")
 
         with (rasterio.open(red_url) as red_src, rasterio.open(nir_url) as nir_src):
-            red = red_src.read(1).astype(float)
-            nir = nir_src.read(1).astype(float)
+            red = red_src.read(1).astype('float32')
+            nir = nir_src.read(1).astype('float32')
 
             # calculate NDVI
-            ndvi = (nir - red + 1e-10) / (nir + red + 1e-10)    # prevent division by zero
+            ndvi = (nir - red) / (nir + red + 1e-10)  # prevent division by zero
             ndvi = np.clip(ndvi, -1, 1)
 
             if self._config.plot_checked:
