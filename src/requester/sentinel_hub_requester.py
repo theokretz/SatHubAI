@@ -87,7 +87,16 @@ class SentinelHubRequester(Requester):
                 "Green": ["B03"],
                 "Blue": ["B02"],
                 "Near Infrared": ["B08"],
-                "NDVI":["B04", "B08"]
+                "Narrow NIR": ["B8A"],
+                "Coastal Aerosol": ["B01"],
+                "Red Edge 1": ["B05"],
+                "Red Edge 2": ["B06"],
+                "Red Edge 3": ["B07"],
+                "Water Vapor": ["B09"],
+                "SWIR - Cirrus": ["B10"],
+                "SWIR 1": ["B11"],
+                "SWIR 2": ["B12"],
+                "NDVI": ["B04", "B08"],
             },
             "Sentinel-2 L2A": {
                 "True Color": ["B04", "B03", "B02"],  # RGB
@@ -96,13 +105,26 @@ class SentinelHubRequester(Requester):
                 "Green": ["B03"],
                 "Blue": ["B02"],
                 "Near Infrared": ["B08"],
-                "NDVI": ["B04", "B08"]
+                "Narrow NIR": ["B8A"],
+                "Coastal Aerosol": ["B01"],
+                "Red Edge 1": ["B05"],
+                "Red Edge 2": ["B06"],
+                "Red Edge 3": ["B07"],
+                "Water Vapor": ["B09"],
+                "SWIR - Cirrus": ["B10"],
+                "SWIR 1": ["B11"],
+                "SWIR 2": ["B12"],
+                "Scene Classification": ["SCL"],  # land cover classification
+                "Aerosol Optical Thickness": ["AOT"],  # atmospheric correction data
+                "Water Vapor Product": ["WVP"],  # atmospheric correction data
+                "NDVI": ["B04", "B08"],
             },
             "Landsat 1-5 MSS L1": {
                 "False Color": ["B04", "B02", "B01"],  # NIR, Red, Green
                 "Red": ["B02"],
                 "Green": ["B01"],
-                "Near Infrared": ["B04"],
+                "Near Infrared 1": ["B03"],
+                "Near Infrared 2": ["B04"],
                 "NDVI": ["B02", "B04"]
             },
             "Landsat 4-5 TM L1": {
@@ -121,7 +143,10 @@ class SentinelHubRequester(Requester):
                 "Green": ["B02"],
                 "Blue": ["B01"],
                 "Near Infrared": ["B04"],
-                "NDVI": ["B03", "B04"]
+                "SWIR 1": ["B05"],
+                "SWIR 2": ["B07"],
+                "Thermal Infrared": ["B06"],
+                "NDVI": ["B04", "B03"]  # NIR (B04), Red (B03)
             },
             "Landsat 7 ETM+ L1": {
                 "True Color": ["B03", "B02", "B01"],  # RGB
@@ -130,7 +155,11 @@ class SentinelHubRequester(Requester):
                 "Green": ["B02"],
                 "Blue": ["B01"],
                 "Near Infrared": ["B04"],
-                "NDVI": ["B03", "B04"]
+                "SWIR 1": ["B05"],
+                "SWIR 2": ["B07"],
+                "Thermal Infrared": ["B06"],
+                "Panchromatic": ["B08"],  # Higher resolution panchromatic band
+                "NDVI": ["B04", "B03"]  # NIR (B04), Red (B03)
             },
             "Landsat 7 ETM+ L2": {
                 "True Color": ["B03", "B02", "B01"],  # RGB
@@ -139,24 +168,38 @@ class SentinelHubRequester(Requester):
                 "Green": ["B02"],
                 "Blue": ["B01"],
                 "Near Infrared": ["B04"],
-                "NDVI": ["B03", "B04"]
+                "SWIR 1": ["B05"],
+                "SWIR 2": ["B07"],
+                "Thermal Infrared": ["B06"],
+                "Panchromatic": ["B08"],  # Higher resolution panchromatic band
+                "NDVI": ["B04", "B03"]  # NIR (B04), Red (B03)
             },
             "Landsat 8-9 OLI/TIRS L1": {
-                "True Color": ["B04", "B03", "B02"],  # RGB
-                "False Color": ["B05", "B04", "B03"],  # NIR, Red, Green
-                "Red": ["B04"],
-                "Green": ["B03"],
+                "Coastal Aerosol": ["B01"],
                 "Blue": ["B02"],
+                "Green": ["B03"],
+                "Red": ["B04"],
                 "Near Infrared": ["B05"],
+                "Shortwave Infrared 1": ["B06"],
+                "Shortwave Infrared 2": ["B07"],
+                "Panchromatic": ["B08"],
+                "Cirrus": ["B09"],
+                "Thermal Infrared 1": ["B10"],
+                "Thermal Infrared 2": ["B11"],
                 "NDVI": ["B04", "B05"]
             },
             "Landsat 8-9 OLI/TIRS L2": {
-                "True Color": ["B04", "B03", "B02"],  # RGB
-                "False Color": ["B05", "B04", "B03"],  # NIR, Red, Green
-                "Red": ["B04"],
-                "Green": ["B03"],
+                "Coastal Aerosol": ["B01"],
                 "Blue": ["B02"],
+                "Green": ["B03"],
+                "Red": ["B04"],
                 "Near Infrared": ["B05"],
+                "Shortwave Infrared 1": ["B06"],
+                "Shortwave Infrared 2": ["B07"],
+                "Panchromatic": ["B08"],
+                "Cirrus": ["B09"],
+                "Thermal Infrared 1": ["B10"],
+                "Thermal Infrared 2": ["B11"],
                 "NDVI": ["B04", "B05"]
             }
         }

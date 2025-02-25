@@ -15,7 +15,7 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'options_
 class OptionsDialog(QDialog, FORM_CLASS):
     icon_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../icons/login.svg"))
     collections_mapping = {
-        "SENTINEL_HUB":["Sentinel-2 L1C", "Sentinel-2 L2A", "Landsat 1-5 MSS L1", "Landsat 4-5 TM L1", "Landsat 4-5 TM L2", "Landsat 7 ETM+ L1", "Landsat 7 ETM+ L2", "Landsat 8-9 OLI/TIRS L1", "Landsat 8-9 OLI/TIRS L2"],
+        "SENTINEL_HUB":["Sentinel-2 L2A", "Sentinel-2 L1C", "Landsat 1-5 MSS L1", "Landsat 4-5 TM L1", "Landsat 4-5 TM L2", "Landsat 7 ETM+ L1", "Landsat 7 ETM+ L2", "Landsat 8-9 OLI/TIRS L1", "Landsat 8-9 OLI/TIRS L2"],
         "PLANETARY_COMPUTER":["Sentinel-2 L2A", "Landsat Collection 2 L1", "Landsat Collection 2 L2"],
         "EARTH_SEARCH": [
             "Sentinel-2 L2A",
@@ -25,16 +25,145 @@ class OptionsDialog(QDialog, FORM_CLASS):
     }
 
     bands_mapping = {
-        "Sentinel-2 L2A" : ["True Color", "False Color", "Red", "Green", "Blue", "Near Infrared"],
-        "Sentinel-2 L1C" : ["True Color", "False Color", "Red", "Green", "Blue", "Near Infrared"],
-        "Landsat Collection 2 L1" : ["False Color", "Red", "Green", "Near Infrared"],
-        "Landsat Collection 2 L2" : ["True Color", "False Color", "Red", "Green", "Blue" , "Near Infrared"],
-        "Landsat 1-5 MSS L1" : ["False Color", "Red", "Green", "Near Infrared"],
-        "Landsat 4-5 TM L1" : ["True Color", "False Color", "Red", "Green", "Blue", "Near Infrared"],
-        "Landsat 7 ETM+ L1": ["True Color", "False Color", "Red", "Green", "Blue", "Near Infrared"],
-        "Landsat 7 ETM+ L2": ["True Color", "False Color", "Red", "Green", "Blue", "Near Infrared"],
-        "Landsat 8-9 OLI/TIRS L1": ["True Color", "False Color", "Red", "Green", "Blue", "Near Infrared"],
-        "Landsat 8-9 OLI/TIRS L2": ["True Color", "False Color", "Red", "Green", "Blue", "Near Infrared"],
+        "Sentinel-2 L2A": [
+        "True Color",
+        "False Color",
+        "Red",
+        "Green",
+        "Blue",
+        "Near Infrared",
+        "Coastal Aerosol",
+        "Red Edge 1",
+        "Red Edge 2",
+        "Red Edge 3",
+        "Narrow NIR",
+        "Water Vapor",
+        "SWIR 1",
+        "SWIR 2",
+        "Aerosol Optical Thickness",
+        "Scene Classification",
+        "Water Vapor Product"
+        ],
+
+        "Sentinel-2 L1C": [
+            "True Color",
+            "False Color",
+            "Red",
+            "Green",
+            "Blue",
+            "Near Infrared",
+            "Coastal Aerosol",
+            "Red Edge 1",
+            "Red Edge 2",
+            "Red Edge 3",
+            "Narrow NIR",
+            "Water Vapor",
+            "SWIR - Cirrus",
+            "SWIR 1",
+            "SWIR 2"
+        ],
+        "Landsat Collection 2 L1": [
+            "False Color",
+            "Red",
+            "Green",
+            "Blue",
+            "Near Infrared",
+            "Narrow NIR",
+            "Pixel QA",
+            "Radiometric Saturation QA"
+        ],
+        "Landsat Collection 2 L2": [
+            "True Color",
+            "False Color",
+            "Red",
+            "Green",
+            "Blue",
+            "Near Infrared",
+            "Coastal Aerosol",
+            "SWIR 1",
+            "SWIR 2",
+            "Thermal Infrared",
+            "Aerosol Quality",
+            "Pixel QA",
+            "Radiometric Saturation QA",
+            "Thermal Atmospheric Transmittance",
+            "Thermal Component Distance",
+            "Thermal Downwelling Radiance",
+            "Thermal Upwelling Radiance",
+            "Thermal Radiance",
+            "Thermal Emissivity",
+            "Thermal Emissivity Standard Deviation",
+            "Scene QA"
+        ],
+
+        "Landsat 1-5 MSS L1" : ["False Color", "Red", "Green", "Near Infrared 1", "Near Infrared 2"],
+        "Landsat 4-5 TM L1": [
+            "True Color",
+            "False Color",
+            "Red",
+            "Green",
+            "Blue",
+            "Near Infrared",
+            "SWIR 1",
+            "SWIR 2",
+            "Thermal Infrared"
+        ],
+
+        "Landsat 7 ETM+ L1": [
+            "True Color",
+            "False Color",
+            "Red",
+            "Green",
+            "Blue",
+            "Near Infrared",
+            "SWIR 1",
+            "SWIR 2",
+            "Thermal Infrared",
+            "Panchromatic"
+        ],
+
+        "Landsat 7 ETM+ L2": [
+            "True Color",
+            "False Color",
+            "Red",
+            "Green",
+            "Blue",
+            "Near Infrared",
+            "SWIR 1",
+            "SWIR 2",
+            "Thermal Infrared",
+            "Panchromatic"
+        ],
+        "Landsat 8-9 OLI/TIRS L1": [
+            "True Color",
+            "False Color",
+            "Red",
+            "Green",
+            "Blue",
+            "Near Infrared",
+            "Coastal Aerosol",
+            "SWIR 1",
+            "SWIR 2",
+            "Thermal Infrared 1",
+            "Thermal Infrared 2",
+            "Panchromatic",
+            "Cirrus"
+        ],
+        "Landsat 8-9 OLI/TIRS L2": [
+            "True Color",
+            "False Color",
+            "Red",
+            "Green",
+            "Blue",
+            "Near Infrared",
+            "Coastal Aerosol",
+            "SWIR 1",
+            "SWIR 2",
+            "Thermal Infrared 1",
+            "Thermal Infrared 2",
+            "Panchromatic",
+            "Cirrus"
+        ]
     }
 
     options = pyqtSignal(OptionsConfig)
