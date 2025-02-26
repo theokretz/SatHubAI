@@ -357,3 +357,48 @@ class Processor(ABC):
             if self._config.import_checked and not self._config.download_checked:
                 filepath = self.create_temporary_file_multiple_bands(red_src, ndvi, 1, 'float32')
                 import_into_qgis(filepath, self._provider.qgis_layer_name + " " + self._collection + "-" + "NDVI")
+
+
+    def is_valid_window(self, window, width, height):
+        """
+        Check if a rasterio window is valid.
+
+        Parameters
+        ----------
+        window : rasterio.windows.Window
+           Window object to check.
+        width : int
+           Raster width.
+        height : int
+           Raster height.
+
+        Returns
+        -------
+        bool
+           True if the window is valid, False otherwise.
+        """
+        return not (window.col_off >= width or
+                    window.row_off >= height or
+                    window.col_off + window.width <= 0 or
+                    window.row_off + window.height <= 0)
+
+    def round_window(self, window):
+        """
+        Round window coordinates to integer values.
+
+        Parameters
+        ----------
+        window : rasterio.windows.Window
+           Window object.
+
+        Returns
+        -------
+        rasterio.windows.Window
+           Window with integer coordinates.
+        """
+        return rasterio.windows.Window(
+            col_off=int(window.col_off),
+            row_off=int(window.row_off),
+            width=int(window.width),
+            height=int(window.height)
+        )

@@ -438,49 +438,6 @@ class CropClassificationProcessor(Processor):
          stats['n_observations'] = len(results['dates'])
          return stats
 
-    def is_valid_window(self, window, width, height):
-        """
-        Check if a rasterio window is valid.
-
-        Parameters
-        ----------
-        window : rasterio.windows.Window
-           Window object to check.
-        width : int
-           Raster width.
-        height : int
-           Raster height.
-
-        Returns
-        -------
-        bool
-           True if the window is valid, False otherwise.
-        """
-        return not (window.col_off >= width or
-                    window.row_off >= height or
-                    window.col_off + window.width <= 0 or
-                    window.row_off + window.height <= 0)
-
-    def round_window(self, window):
-        """
-        Round window coordinates to integer values.
-
-        Parameters
-        ----------
-        window : rasterio.windows.Window
-           Window object.
-
-        Returns
-        -------
-        rasterio.windows.Window
-           Window with integer coordinates.
-        """
-        return rasterio.windows.Window(
-            col_off=int(window.col_off),
-            row_off=int(window.row_off),
-            width=int(window.width),
-            height=int(window.height)
-        )
     def save_features(self):
         """
         Save extracted features and predictions to a CSV file.
@@ -573,7 +530,7 @@ class CropClassificationProcessor(Processor):
             logger.warning("No predictions to assign.")
             return
 
-        # add crop_prediction field to layers before assigning values
+        # add crop_prediction to layers before assigning values
         if layer.fields().indexFromName("crop_prediction") == -1:
             layer.dataProvider().addAttributes([QgsField("crop_prediction", QVariant.String)])
             layer.updateFields()
