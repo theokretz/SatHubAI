@@ -8,10 +8,14 @@ from typing import List, Dict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import os
 from datetime import datetime
+
+import pandas as pd
 import rasterio
 import rasterio.mask
 from rasterio.features import geometry_mask
 import json
+from qgis.core import QgsField, edit
+from PyQt5.QtCore import QVariant
 from shapely.io import from_geojson
 import geopandas as gpd
 from .processor import Processor
@@ -34,7 +38,6 @@ from qgis.core import (
 
 from rasterio.env import Env
 
-from threading import Lock
 logger = logging.getLogger("SatHubAI.ChangeDetectionProcessor")
 
 class ChangeDetectionProcessor(Processor):
@@ -42,12 +45,11 @@ class ChangeDetectionProcessor(Processor):
         super().__init__(config, provider, collection)
         self.threshold_ndvi_change = 0.25  # significant NDVI decrease
         self.invekos_manager = invekos_manager
-        self.change_results = {}  # store results by field ID
         self.ndvi_results = {}
         self.max_workers =  min(4, os.cpu_count() * 2)
-        self.gdal_lock = Lock()
         logger.info(f"Initializing with {self.max_workers} workers")
         self.transformed_geometries = {}  # save transformations
+        self.invalid_fields = []
 
     def process(self, time_series_items):
         """
@@ -96,10 +98,12 @@ class ChangeDetectionProcessor(Processor):
                 field_id = feature['id']
                 try:
                     field_results = future.result()
-                    self.change_results[field_id] = field_results['changes']
+                    # store results
+                    self.ndvi_results[field_id] = field_results
 
                     # log results for this field
                     crop_type = feature['snar_bezeichnung']
+                    self.ndvi_results[field_id]['crop_type'] = crop_type
                     logger.info(f"\nProcessed Field {field_id} - Crop Type: {crop_type}")
                     if field_results['dates']:
                         for date, ndvi in zip(field_results['dates'], field_results['ndvi_values']):
@@ -115,13 +119,17 @@ class ChangeDetectionProcessor(Processor):
                 except Exception as e:
                     logger.error(f"Error processing field {field_id}: {str(e)}")
 
-
         # update layer styling based on results
+        self.assign_change_detection_to_layer(invekos_layer)
         self.update_layer_styling(invekos_layer)
+
+        # download results
+        if self._config.download_checked:
+            self.save_change_results()
 
     def process_field(self, feature: QgsFeature, items_list: List) -> Dict:
         """
-        Process satellite data for a single field in parallel using threads.
+        Process satellite data for a single field.
 
         Parameters
         ----------
@@ -138,27 +146,18 @@ class ChangeDetectionProcessor(Processor):
         results = {'dates': [], 'ndvi_values': [], 'changes': []}
 
         try:
-            ndvi_workers = min(4, len(items_list))
             field_id = feature['id']
-            with ThreadPoolExecutor(max_workers=ndvi_workers) as ndvi_executor:
-                future_to_date = {
-                    ndvi_executor.submit(self.calculate_masked_ndvi, item, feature): item
-                    for item in items_list
-                }
 
-                for future in as_completed(future_to_date):
-                    item = future_to_date[future]
-                    try:
-                        ndvi_mean = future.result()
-                        if ndvi_mean is not None:
-                            date = datetime.strptime(
-                                item.properties['datetime'], '%Y-%m-%dT%H:%M:%S.%fZ'
-                            )
-                            results['dates'].append(date)
-                            results['ndvi_values'].append(ndvi_mean)
-
-                    except Exception as e:
-                        logger.error(f"Error calculating NDVI for field {feature['id']}: {str(e)}")
+            for item in items_list:
+                ndvi_mean = self.calculate_masked_ndvi(item, feature)
+                if ndvi_mean is not None:
+                    date = datetime.strptime(
+                        item.properties['datetime'], '%Y-%m-%dT%H:%M:%S.%fZ'
+                    )
+                    results['dates'].append(date)
+                    results['ndvi_values'].append(ndvi_mean)
+                else:
+                    logger.warning(f"Could not calculate NDVI for field {feature['id']}")
 
             # detect significant NDVI drops
             if len(results['ndvi_values']) > 1:
@@ -173,16 +172,47 @@ class ChangeDetectionProcessor(Processor):
                     results['changes'].append(max_date)
                     logger.info(
                         f"Change detected: NDVI drop from {max_ndvi:.3f} ({max_date}) "
-                        f"to {min_ndvi:.3f} ({min_date})"
+                        f"to {min_ndvi:.3f} ({min_date}) for field {field_id}"
                     )
 
         except Exception as e:
             logger.error(f"Error in process_field: {str(e)}")
             raise
 
-        # save all calculated NDVI values
-        self.ndvi_results[field_id] = results
         return results
+
+    def assign_change_detection_to_layer(self, layer: QgsVectorLayer):
+        """
+        Assign change detection results to QGIS features.
+
+        Parameters
+        ----------
+        layer : QgsVectorLayer
+            INVEKOS vector layer to update.
+        """
+        if not self.ndvi_results:
+            logger.warning("No NDVI results found")
+            return
+
+        # add change_detected to layers before assigning values
+        if layer.fields().indexFromName("change_detected") == -1:
+            layer.dataProvider().addAttributes([QgsField("change_detected", QVariant.String)])
+            layer.updateFields()
+
+        with edit(layer):
+            for feature in layer.getFeatures():
+                field_id = feature['id']
+                feature["change_detected"] = "Unknown"
+
+                if field_id in self.ndvi_results and len(self.ndvi_results[field_id]['ndvi_values']) >= 2:
+                    if self.ndvi_results[field_id]['changes']:
+                        change_value = "Change Detected"
+                    else:
+                        change_value = "No Change"
+
+                feature["change_detected"] = change_value
+                layer.updateFeature(feature)
+
 
     def update_layer_styling(self, layer: QgsVectorLayer):
         """
@@ -212,47 +242,26 @@ class ChangeDetectionProcessor(Processor):
 
             # define categories
             categories = [
-                QgsRendererCategory("1", change_symbol, "Change Detected"),
-                QgsRendererCategory("0", no_change_symbol, "No Change"),
-                QgsRendererCategory("-1", error_symbol, "Failed / No Data")
+                QgsRendererCategory("Change Detected", change_symbol, "Change Detected"),
+                QgsRendererCategory("No Change", no_change_symbol, "No Change"),
+                QgsRendererCategory("Unknown", error_symbol, "Unknown")
             ]
 
-            # get field IDs for different categories
-            # field ids with changes
-            change_ids = {str(fid) for fid, changes in self.change_results.items() if changes}
-
-            # field ids with fewer than 2 ndvi values
-            error_ids = {
-                str(fid) for fid, results in self.ndvi_results.items()
-                if not results or 'ndvi_values' not in results or len(results['ndvi_values']) < 2
-            }
-
-            # dynamically creat expression
-            expression_parts = []
-            if change_ids:
-                expression_parts.append(f"WHEN id IN ({','.join(change_ids)}) THEN '1'")
-            if error_ids:
-                expression_parts.append(f"WHEN id IN ({','.join(error_ids)}) THEN '-1'")
-
-            # default is '0' (No Change)
-            expression = f"CASE {' '.join(expression_parts)} ELSE '0' END" if expression_parts else "'0'"
-
-            # apply styling
-            renderer = QgsCategorizedSymbolRenderer(expression, categories)
+            # create categorized renderer using the change_detected field
+            renderer = QgsCategorizedSymbolRenderer("change_detected", categories)
             layer.setRenderer(renderer)
 
             # set tool tips
             layer.setDisplayExpression(display_expression)
 
-            # refresh display
+            # refresh layer in QGIS
             layer.triggerRepaint()
             QgsProject.instance().reloadAllLayers()
-
         except Exception as e:
             logger.error(f"Error in update_layer_styling: {str(e)}")
             raise
 
-    def calculate_masked_ndvi(self, selected_item, feature):
+    def calculate_masked_ndvi(self, selected_item, field):
         """
         Calculate NDVI for a field using masked satellite data.
 
@@ -260,7 +269,7 @@ class ChangeDetectionProcessor(Processor):
         ----------
         selected_item : Item
             STAC item containing satellite data
-        feature : QgsFeature
+        field : QgsFeature
             INVEKOS field feature
 
         Returns
@@ -268,124 +277,145 @@ class ChangeDetectionProcessor(Processor):
         float or None
             Mean NDVI value for the field or None if calculation fails
         """
-        field_id = feature['id']
+        field_id = field['id']
         date = datetime.strptime(selected_item.properties['datetime'], '%Y-%m-%dT%H:%M:%S.%fZ')
 
         try:
-            # transform invekos field from "EPSG:4326" to "EPSG:32633"
-            geom = from_geojson(feature.geometry().asJson())
-            geom_gdf = gpd.GeoSeries([geom], crs="EPSG:4326").to_crs("EPSG:32633").iloc[0]
-            bounds = geom_gdf.bounds
+            if field_id not in self.transformed_geometries:
+                # transform invekos field from "EPSG:4326" to "EPSG:32633"
+                geom_json = from_geojson(field.geometry().asJson())
+                geom = gpd.GeoSeries([geom_json], crs="EPSG:4326").to_crs("EPSG:32633").iloc[0]
+                bounds = geom.bounds
+                # save in cache
+                self.transformed_geometries[field_id] = geom
+            else:
+                geom = self.transformed_geometries[field_id]
+                bounds = geom.bounds
 
             red_band, nir_band, green_band, blue_band = self.band_mapping.get(self._collection) or self.band_mapping[self._provider]
             red_url = selected_item.assets[red_band].href
             nir_url = selected_item.assets[nir_band].href
 
-            with self.gdal_lock:
-                with Env(GDAL_CACHEMAX=512):
-                    if field_id not in self.transformed_geometries:
-                        with rasterio.open(red_url) as red_src:
-                            # Transform geometry
-                            satellite_crs = QgsCoordinateReferenceSystem(red_src.crs.to_string())
-                            invekos_crs = QgsCoordinateReferenceSystem("EPSG:4326")
 
-                            if not satellite_crs.isValid():
-                                logger.error(f"Invalid satellite CRS: {red_src.crs.to_string()}")
-                                return None
-
-                            if not invekos_crs.isValid():
-                                logger.error(f"Invalid INVEKOS CRS")
-                                return None
-
-                            geom = feature.geometry()
-
-                            if not geom:
-                                logger.error(f"No geometry found for field {field_id}")
-                                return None
-
-                            if satellite_crs != invekos_crs:
-                                try:
-                                    transform = QgsCoordinateTransform(invekos_crs, satellite_crs, QgsProject.instance())
-                                    geom.transform(transform)
-
-                                    # validate transformation
-                                    if not geom.isGeosValid():
-                                        logger.error(f"Invalid geometry after transform for field {field_id}")
-                                        return None
-
-                                    # check if still the same
-                                    if feature.geometry().boundingBox() == geom.boundingBox():
-                                        logger.error(f"Transform failed for field {field_id}: Coordinates unchanged")
-                                        return None
-
-                                except Exception as e:
-                                    logger.error(f"Transform failed for field {field_id}: {str(e)}")
-                                    return None
-
-                            # get bounds
-                            bounds = geom.boundingBox()
-
-                            # save in cache
-                            self.transformed_geometries[field_id] = geom
-                    else:
-                            geom = self.transformed_geometries[field_id]
-                            bounds = geom.boundingBox()
-
+            with Env(GDAL_CACHEMAX=512):
                 with rasterio.open(red_url) as red_src, rasterio.open(nir_url) as nir_src:
-                        # get window
-                        window = red_src.window(
-                            bounds.xMinimum(),
-                            bounds.yMinimum(),
-                            bounds.xMaximum(),
-                            bounds.yMaximum()
-                        )
+                    # get window and transform
+                    window = red_src.window(*bounds)
+                    if not self.is_valid_window(window, red_src.width, red_src.height):
+                        logger.warning(f"Invalid window for field {field_id}")
+                        self.invalid_fields.append(field_id)
+                        return
 
-                        # check if window is valid
-                        if (window.col_off >= red_src.width or
-                                window.row_off >= red_src.height or
-                                window.col_off + window.width <= 0 or
-                                window.row_off + window.height <= 0):
-                            logger.debug(f"Field {field_id} outside image bounds")
-                            return None
+                    window = self.round_window(window)
+                    window_transform = red_src.window_transform(window)
 
-                        # read data using integer window coordinates
-                        window = rasterio.windows.Window(
-                            col_off=int(window.col_off),
-                            row_off=int(window.row_off),
-                            width=int(window.width),
-                            height=int(window.height)
-                        )
+                    # read data
+                    red = red_src.read(1, window=window).astype(float)
+                    nir = nir_src.read(1, window=window).astype(float)
 
-                        # read both bands
-                        red = red_src.read(1, window=window).astype(float)
-                        nir = nir_src.read(1, window=window).astype(float)
+                    # validate
+                    if red.size == 0 or nir.size == 0:
+                        logger.warning(f"Skipping field {field_id} - Field likely too small: {field['sl_flaeche_brutto_ha']}")
+                        self.invalid_fields.append(field_id)
+                        return
+                    if red.shape != nir.shape:
+                        logger.warning(f"Shape mismatch for field {field_id}: red={red.shape}, nir={nir.shape}")
+                        self.invalid_fields.append(field_id)
+                        return
 
-                        if red.size == 0 or nir.size == 0:
-                            logger.debug(f"Empty data read for field {field_id} at {date}")
-                            return None
+                    # create mask
+                    mask = geometry_mask(
+                        [geom],
+                        out_shape=(window.height, window.width),
+                        transform=window_transform,
+                        invert=True
+                    )
 
-                        # create mask
-                        geom_json = json.loads(geom.asJson())
-                        mask = geometry_mask(
-                            [geom_json],
-                            out_shape=(window.height, window.width),
-                            transform=red_src.window_transform(window),
-                            invert=True
-                        )
+                    # validate mask shape
+                    if mask.shape != red.shape:
+                        logger.warning(f"Mask shape mismatch for field {field['id']}: mask={mask.shape}, data={red.shape}")
+                        return
 
-                        # calculate NDVI only for valid pixels
-                        valid_pixels = mask & (red != 0) & (nir != 0)
-                        if not np.any(valid_pixels):
-                            return None
+                    # calculate indices only for valid pixels
+                    valid_pixels = mask & (red != 0) & (nir != 0)
+                    if not np.any(valid_pixels):
+                        logger.warning(f"No valid pixels for field {field['id']}")
+                        return
 
-                        ndvi = np.zeros_like(red)
-                        ndvi[valid_pixels] = (nir[valid_pixels] - red[valid_pixels]) / (
-                                    nir[valid_pixels] + red[valid_pixels] + 1e-10)
-                        ndvi = np.clip(ndvi, -1, 1)
+                    # initialize arrays for indix
+                    ndvi = np.zeros_like(red)
 
-                        return float(np.mean(ndvi[valid_pixels]))
+                    #calculate ndvi
+                    ndvi[valid_pixels] = (nir[valid_pixels] - red[valid_pixels]) / (
+                                nir[valid_pixels] + red[valid_pixels] + 1e-10)
+                    ndvi = np.clip(ndvi, -1, 1)
 
+                    return float(np.mean(ndvi[valid_pixels]))
         except Exception as e:
             logger.error(f"Error processing field {field_id}: {str(e)}")
             logger.exception("Full traceback:")
             return None
+
+    def save_change_results(self):
+        """
+          Save change detection results to a CSV file.
+
+          Parameters:
+          -----------
+          detection_results : dict
+              Dictionary with field IDs as keys and detection results as values
+          """
+        rows = []
+
+        for field_id, result in self.ndvi_results.items():
+            # get change information
+            dates = result.get('dates', [])
+            ndvi_values = result.get('ndvi_values', [])
+            changes = result.get('changes', [])
+            crop_type = result.get('crop_type', 'Unknown')
+
+            # format dates for output
+            dates_str = [d.strftime('%Y-%m-%d') for d in dates]
+            changes_str = [d.strftime('%Y-%m-%d') for d in changes]
+
+            # create a row with all field information
+            row = {
+                'field_id': field_id,
+                'change_detected': 'Yes' if changes else 'No',
+                'crop_type': crop_type,
+                'change_dates': '; '.join(changes_str),
+                'observation_count': len(dates),
+                'observation_dates': '; '.join(dates_str),
+                'ndvi_values': '; '.join([str(round(val, 4)) for val in ndvi_values])
+            }
+
+            # calculate min and max ndvi values
+            if ndvi_values:
+                min_ndvi = min(ndvi_values)
+                max_ndvi = max(ndvi_values)
+
+                # Find the dates for min and max NDVI
+                min_ndvi_index = ndvi_values.index(min_ndvi)
+                max_ndvi_index = ndvi_values.index(max_ndvi)
+
+                min_ndvi_date = dates_str[min_ndvi_index]
+                max_ndvi_date = dates_str[max_ndvi_index]
+
+                row['min_ndvi'] = round(min_ndvi, 4)
+                row['min_ndvi_date'] = min_ndvi_date
+                row['max_ndvi'] = round(max_ndvi, 4)
+                row['max_ndvi_date'] = max_ndvi_date
+                row['ndvi_range'] = round(max_ndvi - min_ndvi, 4)
+
+            rows.append(row)
+
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        output_path = os.path.join(
+            self._config.download_directory,
+            f'change_detection_results_{timestamp}.csv'
+        )
+        # create dataframe and save as CSV
+        df = pd.DataFrame(rows)
+        df.to_csv(output_path, index=False)
+
+        return df
