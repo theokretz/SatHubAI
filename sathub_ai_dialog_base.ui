@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>612</width>
-    <height>873</height>
+    <width>608</width>
+    <height>805</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -32,47 +32,11 @@
        <string>Submit</string>
       </property>
      </widget>
-     <widget class="QLabel" name="label_4">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>60</y>
-        <width>121</width>
-        <height>16</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Select Area:</string>
-      </property>
-     </widget>
-     <widget class="QToolButton" name="tbSelectArea">
-      <property name="geometry">
-       <rect>
-        <x>90</x>
-        <y>50</y>
-        <width>31</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string/>
-      </property>
-      <property name="icon">
-       <iconset>
-        <normaloff>:/icons/icons/map-location-dot-solid.svg</normaloff>:/icons/icons/map-location-dot-solid.svg</iconset>
-      </property>
-      <property name="iconSize">
-       <size>
-        <width>25</width>
-        <height>25</height>
-       </size>
-      </property>
-     </widget>
      <widget class="QWidget" name="layoutWidget">
       <property name="geometry">
        <rect>
-        <x>30</x>
-        <y>360</y>
+        <x>20</x>
+        <y>330</y>
         <width>241</width>
         <height>22</height>
        </rect>
@@ -144,38 +108,12 @@
        </item>
       </layout>
      </widget>
-     <widget class="QLabel" name="label_5">
-      <property name="geometry">
-       <rect>
-        <x>200</x>
-        <y>60</y>
-        <width>111</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Selected Coordinates:</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_coordinates">
-      <property name="geometry">
-       <rect>
-        <x>310</x>
-        <y>50</y>
-        <width>251</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string/>
-      </property>
-     </widget>
      <widget class="QWidget" name="verticalLayoutWidget">
       <property name="geometry">
        <rect>
-        <x>310</x>
+        <x>300</x>
         <y>500</y>
-        <width>314</width>
+        <width>291</width>
         <height>204</height>
        </rect>
       </property>
@@ -189,12 +127,11 @@
        </item>
        <item>
         <widget class="QCalendarWidget" name="calendarEnd">
-         <property name="selectedDate">
-          <date>
-           <year>2024</year>
-           <month>12</month>
-           <day>31</day>
-          </date>
+         <property name="maximumSize">
+          <size>
+           <width>280</width>
+           <height>16777215</height>
+          </size>
          </property>
         </widget>
        </item>
@@ -205,7 +142,7 @@
        <rect>
         <x>10</x>
         <y>500</y>
-        <width>314</width>
+        <width>282</width>
         <height>204</height>
        </rect>
       </property>
@@ -219,38 +156,31 @@
        </item>
        <item>
         <widget class="QCalendarWidget" name="calendarStart">
+         <property name="maximumSize">
+          <size>
+           <width>280</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="selectedDate">
           <date>
            <year>2024</year>
            <month>6</month>
-           <day>30</day>
+           <day>3</day>
           </date>
+         </property>
+         <property name="navigationBarVisible">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
       </layout>
      </widget>
-     <widget class="QCheckBox" name="cb_import">
-      <property name="geometry">
-       <rect>
-        <x>460</x>
-        <y>320</y>
-        <width>111</width>
-        <height>17</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Import into QGIS</string>
-      </property>
-      <property name="checked">
-       <bool>false</bool>
-      </property>
-     </widget>
      <widget class="QWidget" name="horizontalLayoutWidget_3">
       <property name="geometry">
        <rect>
-        <x>30</x>
-        <y>300</y>
+        <x>20</x>
+        <y>270</y>
         <width>241</width>
         <height>51</height>
        </rect>
@@ -294,41 +224,32 @@
        </item>
       </layout>
      </widget>
-     <widget class="QCheckBox" name="cb_plot_image">
-      <property name="geometry">
-       <rect>
-        <x>460</x>
-        <y>350</y>
-        <width>81</width>
-        <height>17</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Plot Image</string>
-      </property>
-     </widget>
      <widget class="QWidget" name="gridLayoutWidget">
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>160</y>
+        <y>170</y>
         <width>541</width>
-        <height>83</height>
+        <height>51</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_2">
-       <item row="0" column="6">
-        <spacer name="horizontalSpacer_4">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
+       <item row="0" column="5">
+        <widget class="QPushButton" name="pb_options_pc">
+         <property name="maximumSize">
           <size>
-           <width>40</width>
-           <height>20</height>
+           <width>31</width>
+           <height>16777215</height>
           </size>
          </property>
-        </spacer>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset>
+           <normaloff>:/icons/icons/sliders-solid.svg</normaloff>:/icons/icons/sliders-solid.svg</iconset>
+         </property>
+        </widget>
        </item>
        <item row="0" column="1">
         <widget class="QPushButton" name="pb_options_sh">
@@ -363,6 +284,36 @@
          </property>
         </widget>
        </item>
+       <item row="0" column="7">
+        <widget class="QCheckBox" name="cbEarthSearch">
+         <property name="maximumSize">
+          <size>
+           <width>90</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Earth Search</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="2">
+        <widget class="QPushButton" name="pushButton">
+         <property name="maximumSize">
+          <size>
+           <width>31</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset>
+           <normaloff>:/icons/icons/login.svg</normaloff>:/icons/icons/login.svg</iconset>
+         </property>
+        </widget>
+       </item>
        <item row="0" column="0">
         <widget class="QCheckBox" name="cbSentinelHub">
          <property name="maximumSize">
@@ -376,22 +327,18 @@
          </property>
         </widget>
        </item>
-       <item row="0" column="5">
-        <widget class="QPushButton" name="pb_options_pc">
-         <property name="maximumSize">
+       <item row="0" column="6">
+        <spacer name="horizontalSpacer_4">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
           <size>
-           <width>31</width>
-           <height>16777215</height>
+           <width>40</width>
+           <height>20</height>
           </size>
          </property>
-         <property name="text">
-          <string/>
-         </property>
-         <property name="icon">
-          <iconset>
-           <normaloff>:/icons/icons/sliders-solid.svg</normaloff>:/icons/icons/sliders-solid.svg</iconset>
-         </property>
-        </widget>
+        </spacer>
        </item>
        <item row="0" column="3">
         <spacer name="horizontalSpacer_3">
@@ -423,43 +370,13 @@
          </property>
         </widget>
        </item>
-       <item row="0" column="7">
-        <widget class="QCheckBox" name="cbEarthSearch">
-         <property name="maximumSize">
-          <size>
-           <width>90</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>Earth Search</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="2">
-        <widget class="QPushButton" name="pushButton">
-         <property name="maximumSize">
-          <size>
-           <width>31</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-         <property name="icon">
-          <iconset>
-           <normaloff>:/icons/icons/login.svg</normaloff>:/icons/icons/login.svg</iconset>
-         </property>
-        </widget>
-       </item>
       </layout>
      </widget>
      <widget class="QLabel" name="label_6">
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>130</y>
+        <y>150</y>
         <width>121</width>
         <height>21</height>
        </rect>
@@ -468,50 +385,135 @@
        <string>Select Satellite Provider:</string>
       </property>
      </widget>
-     <widget class="QCheckBox" name="cb_change_detection">
+     <widget class="QWidget" name="horizontalLayoutWidget">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>400</y>
+        <width>541</width>
+        <height>80</height>
+       </rect>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <widget class="QCheckBox" name="cb_invekos">
+         <property name="text">
+          <string>Load INVEKOS Data</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="cb_change_detection">
+         <property name="text">
+          <string>Change Detection</string>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="cb_crop_classification">
+         <property name="text">
+          <string>Crop Classification</string>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="gridLayoutWidget_2">
+      <property name="geometry">
+       <rect>
+        <x>390</x>
+        <y>270</y>
+        <width>160</width>
+        <height>80</height>
+       </rect>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_4">
+       <item row="1" column="0">
+        <widget class="QCheckBox" name="cb_plot_image">
+         <property name="text">
+          <string>Plot Image</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QCheckBox" name="cb_import">
+         <property name="text">
+          <string>Import into QGIS</string>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="horizontalLayoutWidget_2">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>50</y>
+        <width>111</width>
+        <height>80</height>
+       </rect>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <item>
+        <widget class="QLabel" name="label_4">
+         <property name="text">
+          <string>Select Area:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="tbSelectArea">
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset>
+           <normaloff>:/icons/icons/map-location-dot-solid.svg</normaloff>:/icons/icons/map-location-dot-solid.svg</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>25</width>
+           <height>25</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="horizontalLayoutWidget_4">
       <property name="geometry">
        <rect>
         <x>230</x>
-        <y>440</y>
-        <width>121</width>
-        <height>21</height>
+        <y>50</y>
+        <width>331</width>
+        <height>80</height>
        </rect>
       </property>
-      <property name="text">
-       <string>Change Detection</string>
-      </property>
-      <property name="checked">
-       <bool>false</bool>
-      </property>
-     </widget>
-     <widget class="QCheckBox" name="cb_invekos">
-      <property name="geometry">
-       <rect>
-        <x>30</x>
-        <y>440</y>
-        <width>141</width>
-        <height>17</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Load INVEKOS Data</string>
-      </property>
-     </widget>
-     <widget class="QCheckBox" name="cb_crop_classification">
-      <property name="geometry">
-       <rect>
-        <x>400</x>
-        <y>440</y>
-        <width>131</width>
-        <height>17</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Crop Classification</string>
-      </property>
-      <property name="checked">
-       <bool>false</bool>
-      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <item>
+        <widget class="QLabel" name="label_5">
+         <property name="text">
+          <string>Selected Coordinates:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_coordinates">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
     </widget>
    </item>
