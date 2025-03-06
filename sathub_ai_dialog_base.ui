@@ -162,13 +162,6 @@
            <height>16777215</height>
           </size>
          </property>
-         <property name="selectedDate">
-          <date>
-           <year>2024</year>
-           <month>6</month>
-           <day>3</day>
-          </date>
-         </property>
          <property name="navigationBarVisible">
           <bool>true</bool>
          </property>
@@ -535,12 +528,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>59</x>
-     <y>215</y>
+     <x>69</x>
+     <y>296</y>
     </hint>
     <hint type="destinationlabel">
-     <x>258</x>
-     <y>259</y>
+     <x>268</x>
+     <y>340</y>
     </hint>
    </hints>
   </connection>
@@ -551,12 +544,108 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>32</x>
-     <y>203</y>
+     <x>42</x>
+     <y>296</y>
     </hint>
     <hint type="destinationlabel">
-     <x>235</x>
-     <y>219</y>
+     <x>268</x>
+     <y>280</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>cbSentinelHub</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>cb_change_detection</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>40</x>
+     <y>206</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>263</x>
+     <y>447</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>cbSentinelHub</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>cb_crop_classification</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>93</x>
+     <y>204</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>454</x>
+     <y>450</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>cb_crop_classification</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>cb_change_detection</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>534</x>
+     <y>449</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>330</x>
+     <y>449</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>cb_change_detection</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>cb_crop_classification</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>363</x>
+     <y>440</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>546</x>
+     <y>451</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>cb_crop_classification</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>cbSentinelHub</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>495</x>
+     <y>446</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>76</x>
+     <y>200</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>cb_change_detection</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>cbSentinelHub</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>297</x>
+     <y>451</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>80</x>
+     <y>205</y>
     </hint>
    </hints>
   </connection>
