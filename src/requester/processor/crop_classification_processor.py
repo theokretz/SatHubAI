@@ -99,7 +99,6 @@ class CropClassificationProcessor(Processor):
             for future in as_completed(future_to_field):
                 field = future_to_field[future]
                 field_id = field['id']
-                crop_label = is_single_crop(field['snar_bezeichnung'])
                 area = field['sl_flaeche_brutto_ha']
                 try:
                     field_features = future.result()
@@ -107,7 +106,6 @@ class CropClassificationProcessor(Processor):
                     if field_features:
                         self.feature_results[field_id] = {
                         'field_id': field_id,
-                        'label': crop_label,
                         'area': area
                         }
                         self.feature_results[field_id].update(field_features)
@@ -133,7 +131,7 @@ class CropClassificationProcessor(Processor):
             logger.error("The model is not loaded.")
 
         if self.feature_results:
-            features_df = pd.DataFrame.from_dict(self.feature_results, orient='index').drop(columns=["field_id", "label"])
+            features_df = pd.DataFrame.from_dict(self.feature_results, orient='index').drop(columns=["field_id"])
             predictions = self.model.predict(features_df.values)
 
             # store predictions in `self.prediction_results`
@@ -405,7 +403,9 @@ class CropClassificationProcessor(Processor):
                  if len(values) > 1:
                      days = [(date - results['dates'][0]).days for date in results['dates']]
                      try:
-                         stats[f'{index_name}_trend'] = np.polyfit(days, values, 1)[0]
+                         stats[f'{index_name}_trend'] = n
+
+                         p.polyfit(days, values, 1)[0]
                      except Exception as e:
                          stats[f'{index_name}_trend'] = None
 

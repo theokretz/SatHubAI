@@ -94,15 +94,15 @@ class ChangeDetectionProcessor(Processor):
 
             # process results as they complete
             for future in as_completed(future_to_field):
-                feature = future_to_field[future]
-                field_id = feature['id']
+                field = future_to_field[future]
+                field_id = field['id']
                 try:
                     field_results = future.result()
                     # store results
                     self.ndvi_results[field_id] = field_results
 
                     # log results for this field
-                    crop_type = feature['snar_bezeichnung']
+                    crop_type = field['snar_bezeichnung']
                     self.ndvi_results[field_id]['crop_type'] = crop_type
                     logger.info(f"\nProcessed Field {field_id} - Crop Type: {crop_type}")
                     if field_results['dates']:
@@ -306,6 +306,7 @@ class ChangeDetectionProcessor(Processor):
                         self.invalid_fields.append(field_id)
                         return
 
+                    # rounding because rasterio needs integer coordinates
                     window = self.round_window(window)
                     window_transform = red_src.window_transform(window)
 

@@ -134,11 +134,8 @@ class SentinelProcessor(Processor):
         red_url = selected_item.assets[red_name].href
         green_url = selected_item.assets[green_name].href
         nir_url = selected_item.assets[nir_name].href
-        print("_________")
 
         false_color = self.true_false_color_calculation(nir_url, red_url, green_url)
-        print("false color")
-        print(np.min(false_color), np.max(false_color))
 
         # import
         if self._config.plot_checked:
@@ -151,8 +148,6 @@ class SentinelProcessor(Processor):
         # download
         if self._config.download_checked:
             with rasterio.open(red_url) as red_src:
-                print("red_src line 86")
-                print(red_src.dtypes[0])
                 #file_path = self.save_image_false_color(red_src, false_color,f"{self._provider.filename}_{self._collection}_false_color")
                 # scale from [0,1] to [0,255]
                 scaled_data = (false_color * 255).astype('uint8')
@@ -167,7 +162,6 @@ class SentinelProcessor(Processor):
         # just import no download
         if self._config.import_checked and not self._config.download_checked:
             with rasterio.open(red_url) as red_src:
-                print(red_src.dtypes[0])
                 scaled_data = (false_color * 255).astype('uint8')
                 file_path = self.create_temporary_file_multiple_bands(red_src, scaled_data, 3, 'uint8')
                 import_into_qgis(file_path,

@@ -4,17 +4,12 @@ numpy~=2.1.2
 rasterio~=1.4.1
 planetary-computer~=1.0.0
 matplotlib~=3.9.2
-
 requests~=2.32.3
 rioxarray~=0.18.1
 stackstac~=0.5.1
-oauthlib~=3.2.2
-requests-oauthlib~=2.0.0
-urllib3~=2.2.3
 geopandas~=1.0.1
 pandas~=2.2.3
 scipy~=1.14.1
 shapely~=2.0.6
 joblib~=1.4.2
 scikit-learn~=1.6.1
-imbalanced-learn~=0.13.0
