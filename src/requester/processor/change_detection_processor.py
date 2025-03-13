@@ -202,7 +202,7 @@ class ChangeDetectionProcessor(Processor):
         with edit(layer):
             for feature in layer.getFeatures():
                 field_id = feature['id']
-                feature["change_detected"] = "Unknown"
+                change_value = "Unknown"
 
                 if field_id in self.ndvi_results and len(self.ndvi_results[field_id]['ndvi_values']) >= 2:
                     if self.ndvi_results[field_id]['changes']:

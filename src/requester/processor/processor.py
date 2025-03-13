@@ -45,8 +45,8 @@ class Processor(ABC):
         }
         #todo get all bands
         self.band_mapping = {
-            "landsat-c2-l2": ("red", "nir08"),
-            "landsat-c2-l1": ("red", "nir08"),
+            "landsat-c2-l2": ("red", "nir08", "green", "blue"),
+            "landsat-c2-l1": ("red", "nir08", "green", "blue"),
             self._provider.EARTH_SEARCH: ("red", "nir", "green", "blue"),
             self._provider.PLANETARY_COMPUTER: ("B04", "B08", "B03", "B02"),
         }
